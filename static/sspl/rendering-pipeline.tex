@@ -24,8 +24,8 @@
   $\Rightarrow$
 }
 
-\begin{tblr}{ Q[c,b] Q[c,h] Q[c,b] Q[c,h] }
-  {
+\begin{tblr}{ Q[c,h] Q[c,b] Q[c,h] Q[c,b] Q[c,h] }
+  &{
     \begin{tikzpicture}[scale=1.41]
       \draw[thick] (0.9, 1.9) rectangle (1.1, 1.7);
       \draw[thick] (0.92,1.6) -- (0.95, 1.7) -- (1.05, 1.7) -- (1.08, 1.6) -- cycle;
@@ -39,8 +39,9 @@
   }
   &\arrow &\emptymatrix &\arrow
   \\
-  Local space & & Model matrix
+  & Local space & & Model matrix
   \\
+  \arrow&
   {
     \begin{tikzpicture}[scale=1.41]
       \draw[thick] (0.9, 1.9) rectangle (1.1, 1.7);
@@ -55,8 +56,9 @@
   }
   &\arrow &{\emptymatrix} &\arrow
   \\
-  World Space & & View matrix
+  & World Space & & View matrix
   \\
+  \harrow&
   {
     \begin{tikzpicture}[scale=1.41]
       \draw[dashed, <->] (1,0.4) -- (1,1.6);
@@ -67,8 +69,9 @@
   }
   &\harrow &{\emptymatrix} &\harrow
   \\
-  View space & & Projection matrix
+  & View space & & Projection matrix
   \\
+  $\Rightarrow$&
   {
     \begin{tikzpicture}[scale=1.41]
       \draw[dashed, <->] (1,0.4) -- (1,1.6);
@@ -104,7 +107,7 @@
     \\
   }
   \\
-  Clip space & & Screen space
+  & Clip space & & Screen space
 \end{tblr}
 
 \end{document}

@@ -1,5 +1,5 @@
 ---
-title: "Vector Graphics in Godot and Beyond!"
+title: "Drawing Lines in Godot and Beyond!"
 date: 2023-04-20T00:19:04+02:00
 author: JavierMelon
 # aliases: ["first"]
@@ -13,13 +13,14 @@ svg: true
 
 This article's purpose is to explain to beginners how to do vector graphics.
 I've cover here all I needed to know to truly understand what I was doing.
-So, I'll go into detail about things that are basic to some people, but that are nontheless necessary
-(like the OpenGL rendering pipeline and miter joints).
-Though the article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on what's written here.
+So, I'll go into detail about things that are basic to some people, but that are nontheless necessary.
+Things like the OpenGL rendering pipeline and miter joints.
 
-You might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl), which was the article I first found on the subject.
+And, though the article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on what's written here.
+
+If you feel like you've got your bases covered, you might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl).
+It was the first article I found on the subject.
 It is much, much briefer, but it won't cover the basic knowledge you need.
-If you feel like you already have it, it'll probably do you better, though.
 
 ## Why vector graphics?
 
@@ -31,57 +32,61 @@ So I decided to work on another game.
 I'd never written a [game design document](https://gamedevbeginner.com/how-to-write-a-game-design-document-with-examples/) before; it's one of the things my friend insisted I do that have made everything easier.
 Particularly, when writing it out I noted one of the limitations of the game was going to be my artistic abilities.
 I'm decent at music, but there's no way I'm making 2D animations by hand that look good.
-But I remembered a really neat phone game called [PewPew](https://pewpew.live) I'd played as a child, and was inspired by it's neat vector graphics.
+But I remembered a really neat phone game called [PewPew](https://pewpew.live) I'd played as a child, and was inspired by its neat vector graphics.
 So I decided to give those a shot!
 How hard could it be?
 
 I opened [Blender](https://www.blender.org/) and made some models using only edges, and opened them up in Godot.
 I realized that they were only one pixel thick lines, and they weren't very visible.
-So I set out to fix that.
 
+{{<figure src="/sspl/godot-pixel-thick.png" width=500vp >}}
+
+So I set out to fix that.
 Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder.
-<!-- TODO!: Put an image of Blender -->
-That worked... Ok.
-Except where lines met.
-<!-- TODO!: Add another showing the point of the ship -->
+
+{{<figure src="/sspl/blender-bevel.png" >}}
+
+That worked alright, except where lines met.
+
+{{<figure src="/sspl/blender-edge.png" width=500vp >}}
+
 It seemed to me like a bit of a hack, and I wanted to reach a better solution.
 So I contacted the creator of PewPew, and eventually landed on their Discord server.
-He pointed me to [Matt's article](https://mattdesl.svbtle.com/drawing-lines-is-hard).
-And so, I started on this journey.
+He pointed me to Matt's article, and I started on this journey.
 
 ## Making lines have width
 
 So, what is a 3D model, really?
-They are, really, three arrays:
+They are, really, two arrays:
 1. The vertex array:
-an indexed list of the location every vertex (that is, every point).
-2. The edge array:
-every pair of values designates the indexes of two vertices that form a line.
-3. The face array:
-every three values designate three indexes that form a triangular face.
+an indexed list of the location of every vertex.
+2. The index array:
+the actual body of the array. 
+For ones made of edges, every pair of values designates the indexes of its two vertices.
+For ones made of faces, every three values designate three indexes that form a triangular face.
 
 |||
 | :-: | :-: |
-| $$Vertex: [A, B, C]$$ $$Edge: [0,1, 1,2, 2,0]$$ $$Face: [0,1,2]$$ | {{< figure src="/sspl/model-arrays.svg" width=250 class="svg">}} |
+| $$Vertex: [A, B, C]$$ $$Index: [0,1,2]$$ | {{< figure src="/sspl/model-arrays.svg" width=250 class="svg">}} |
 
-My ship's face array is empty.
-When OpenGL, which is the API used to render in Godot, receives a model it needs to be specified how to interpret it.
+When OpenGL, which is the API used to render in Godot, receives a model, it also receives how to interpret the index array.
 That's what's called the model's [primitive](https://www.khronos.org/opengl/wiki/Primitive).
-The ship's primitive is GL_LINES, and though OpenGL supports setting a width for it, Godot does not (as far as I can tell).
-So, as long as the model only has edges, they're stuck being one pixel wide.
+The ship's primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not
+(as far as I can tell).
+So, as long as the model only has edges, it's of type GL_LINES, and it's stuck being one pixel wide.
 
-So, instead, we'll make a model that replaces every line with four vertices forming five edges and two faces, like so:
+So, instead, we'll make a model that replaces every line with four vertices that form five edges and two faces, like so:
 
 {{<figure src="/sspl/line-to-faces.svg" width=200vp class="svg">}}
 
-If we push out the new edges perpendicularly to the line it gets a width!
+If we push out the new edges perpendicularly the line gets wide!
 Except. What happens when two lines meet?
 
 {{<figure src="/sspl/non-miter-joint.svg" width=250vp class="svg">}}
 
 Oops...
-Well. How do we handle this.
-Have you ever paid attention to door frames?
+Well. How do we handle this?
+We take inspiration from door frames.
 
 {{<figure src="/sspl/door_frame.jpg" width=200vp >}}
 
@@ -90,8 +95,8 @@ Yeah. That style of joint is called a miter joint.
 {{<figure src="/sspl/miter-joint.svg" width=500vp class="svg">}}
 We project two lines around the edges and find the points where they intersect.
 Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points ($D$ and $E$).
-[Here](https://www.geogebra.org/calculator/rhsczxkf) is a GeoGebra where you can try this out,
-and [here](TODO!) is an article where you can see how it's worked out.
+[Here](https://www.geogebra.org/calculator/rhsczxkf), in GeoGebra, you can try this out.
+This is how you calculate where $D$ and $E$ are:
 <!-- TODO!: FIX! -->
 
 However, there's a problem: This really only makes sense in 2D.
@@ -102,39 +107,39 @@ My game's using 3D models.
 So, we need to project 3D space to a 2D plane.
 But we can't just project it to any 2D plane.
 We need to project them to a plane facing the camera:
-if we didn't, things would look thinner and distorted, like a sheet of paper tilted away from you.
+if we didn't, things would look thinner and distorted when tilted away from it.
 And since the camera can be constantly moving and rotating, the plane facing it will change every frame.
-Even if you're familiar with linear algebra, this seems like a massive undertaking.
+Even if you're familiar with linear algebra, this seems like a massive undertaking...
 Thankfully, it's not one we have to do!
-As almost always, we stand on the shoulders of those who have done the hard work before us.
 
-Let's get into the OpenGL rendering pipeline!
-When the camera renders the game, it projects 3D space (the world of the game) into the 2D plane that is the screen (screen space).
-On top of that, that plane is of course always facing the camera, since it's what the camera renders.
-We'd like to do exactly the same thing.
+To know why, we need to get into the OpenGL rendering pipeline.
+After all, when the camera renders the game, it projects 3D space (the world of the game) into a 2D plane (the screen).
+On top of that, the screen plane always faces the camera, since that's kind of what rendering is.
+We'd like to do the exact same thing.
 
-### So, wait, why does OpenGL project vertices anyways?
+### So, how does OpenGL project to the screen?
 
-Isn't that unnecessary?
 The most intuitive way to render a 3D scene would be following physics:
 casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they'd be, and which hit the camera.
-This would be wasteful, as most rays would never actually reach the camera.
-But we could simply reverse it, casting rays from the camera and calculating in reverse.
-<!-- TODO! Raytracing image -->
-This is, in fact, what raytracing is.
-Raytracing has only recently become doable in real time for consumer computers,
-and we've had 3D games since the 90s.
+This would be wasteful, as most rays would go flying off into the sky and never hit it.
+
+But we could simply reverse that process, casting rays from the camera and calculating what light sources they hit.
+That's what raytracing is.
+But it has only recently become doable in real time for consumer computers,
+and OpenGL was made in the 90s.
 So, there has to be a way more efficient way.
 
-Yes, there is.
-Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient.
-Triangle rasterization is the process of turning a bunch of triangle whose vertices you know into actual colored pixels.
+<!-- TODO! -->
+Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient:
+turning a bunch of triangle whose vertices you know into actual colored pixels.
+
 {{<figure src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Top-left_triangle_rasterization_rule.gif" width=500vp >}}
-And so, you can see where we're going:
-if 3D models are collections of triangles,
-and OpenGL can project each vertex into where they'd be on the screen,
-and triangle rasterization can efficiently turn triangles into colored pixels,
-there we have it!
+
+And 3D models are just a bunch of triangles in 3D space.
+If we could know where those triangles would be in the 2D screen plane
+(that is, project them there)
+we could use that efficient algorithm to turn them into pixels.
+And there we have it!
 Efficient rendering!
 
 ### And how does OpenGL project vertices?
@@ -149,7 +154,7 @@ By default, of course, this function projects the vertex to screen space.
 
 How does it do that?
 Linear algebra!
-If you're not familiar with it, I strongly recommend checking out [3Blue1Brown's series]() <!-- TODO! --> on it.
+If you're not familiar with it, I strongly recommend checking out [3Blue1Brown's series](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab) on it.
 But basically, positions are represented as vectors, which are just groups of numbers.
 A group or 3 numbers (3D vector) can represent 3D space by representing the $x$, $y$ and $z$ position of each number, like so:
 
@@ -184,10 +189,7 @@ $$
 
 Critically, the matrix doesn't depend on the vector, only on the angle.
 That means that if we had any ammount of 2D points, to rotate them around the origin you just multiply the same matrix by all of them.
-
-That's how OpenGL projects the vertices: it multiplies matrices by each vertex's position.
-And that's what the vertex shader does.
-Since the matrices are the same for any given object, it just does the multiplying!
+That's how OpenGL projects the vertices: the shader is the program that multiplies matrices by each vertex's position.
 
 One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
 That is because 3x3 matrices multiplied with a 3D vector can only rotate and scale, but not translate.
@@ -605,4 +607,4 @@ There we go!
 The width and edge are both preserved!
 Now, to finish this article out, let's see what it looks like on the ship I've made:
 
-{{<figure src="/sspl/gif-spaceship.gif">}}
+{{<figure src="/sspl/gif-new-ship.gif">}}
