@@ -12,41 +12,40 @@ svg: true
 ## Introduction
 
 This article's purpose is to explain to beginners how to do vector graphics.
-I've cover here all I needed to know to truly understand what I was doing.
+I've covered here all I needed to know to truly understand what I was doing.
 So, I'll go into detail about things that are basic to some people, but that are nonetheless necessary.
-Things like the OpenGL rendering pipeline and miter joints.
-
-And, though the article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on what's written here.
 
 If you feel like you've got your bases covered, you might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl).
 It was the first article I found on the subject.
 It is much, much briefer, but it won't cover the basic knowledge you need.
 
+And, though this article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on it.
+
 ## Why vector graphics?
 
 I half-developed some silly games when I was a few years younger.
 I always got bored and eventually abandoned them.
-But now that I've started university, I've become friends with someone who has a lot more experience, and I've retroactively realized I had massive Dunning-Kruger.
+But now that I've started university, I've become friends with someone who has a lot more experience, and I've retroactively realized I had some Dunning-Kruger.
 So, I decided to work on another game.
 
 I'd never written a [game design document](https://gamedevbeginner.com/how-to-write-a-game-design-document-with-examples/) before; it's one of the things my friend insisted I do that have made everything easier.
-Particularly, when writing it out I noted one of the limitations of the game was going to be my artistic abilities.
-I'm decent at music, but there's no way I'm making 2D animations by hand that look good.
-But I remembered a really neat phone game called [PewPew](https://pewpew.live) I'd played as a child, and was inspired by its neat vector graphics.
+For example, when writing it out I realized one of the limitations of the game was going to be my artistic ability:
+there's no way I'm making 2D animations by hand that look good.
+But I remembered a really neat phone game called [PewPew](https://pewpew.live) I'd played years ago, and was inspired by its neat vector graphics.
 So, I decided to give those a shot!
 How hard could it be?
 
 I opened [Blender](https://www.blender.org/) and made some models using only edges, and opened them up in Godot.
-I realized that they were only one pixel thick lines, and they weren't very visible.
+And I saw they were being rendered as one pixel thin lines:
 
 {{<figure src="/sspl/godot-pixel-thick.png" width=500vp >}}
 
-So, I set out to fix that.
-Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder.
+They weren't very visible in big resolutions, so they wouldn't do.
+Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder:
 
 {{<figure src="/sspl/blender-bevel.png" >}}
 
-That worked alright, except where lines met.
+That worked alright, except where lines met:
 
 {{<figure src="/sspl/blender-edge.png" width=500vp >}}
 
@@ -56,26 +55,26 @@ He pointed me to Matt's article, and I started on this journey.
 
 ## Making lines have width
 
-So, what is a 3D model, really?
-They are, really, two arrays:
+What is a 3D model, really?
+Well, it's a bunch of arrays. The two main ones are:
 1. The vertex array:
-an indexed list of the location of every vertex.
+an indexed list of the location of every vertex, and
 2. The index array:
-the actual body of the array. 
-For ones made of edges, every pair of values designates the indexes of its two vertices.
-For ones made of faces, every three values designate three indexes that form a triangular face.
+the body of the model. 
+For edge models, every pair of values corresponds to the indexes of two vertices of an edge.
+For face models, every triplet of values corresponds to the indexes of a triangular face.
 
 |||
 | :-: | :-: |
 | $$Vertex: [A, B, C]$$ $$Index: [0,1,2]$$ | {{< figure src="/sspl/model-arrays.svg" width=250 class="svg">}} |
 
-When OpenGL, which is the API used to render in Godot, receives a model, it also receives how to interpret the index array.
+When OpenGL (the API Godot uses to render) receives a model, it also receives how to interpret the index array.
 That's what's called the model's [primitive](https://www.khronos.org/opengl/wiki/Primitive).
 The ship's primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not
-(as far as I can tell).
-So, as long as the model only has edges, it's of type GL_LINES, and it's stuck being one pixel wide.
+as far as I can tell.
+So, as long as the model only has edges, it will be of type GL_LINES, and it will be stuck being one pixel wide.
 
-So, instead, we'll make a model that replaces every line with four vertices that form five edges and two faces, like so:
+Instead, we'll make a model that replaces every line with four vertices that form two faces, like so:
 
 {{<figure src="/sspl/line-to-faces.svg" width=200vp class="svg">}}
 
@@ -93,67 +92,73 @@ We take inspiration from door frames.
 Yeah. That style of joint is called a miter joint.
 
 {{<figure src="/sspl/miter-joint.svg" width=500vp class="svg">}}
-We project two lines around the edges and find the points where they intersect.
+We create two lines around the edges and find the points where they intersect.
 Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points ($D$ and $E$).
-[Here](https://www.geogebra.org/calculator/rhsczxkf), in GeoGebra, you can try this out.
-This is how you calculate where $D$ and $E$ are:
-<!-- TODO!: FIX! -->
+I made an [interactive version](https://www.geogebra.org/calculator/rhsczxkf) in GeoGebra.
 
-However, there's a problem: This really only makes sense in 2D.
+Here is how you calculate $D$ and $E$:
 
-## Shaders, screen space and the rendering pipeline
+{{<figure src="/sspl/miter-joint-proof.svg" width=500vp class="svg">}}
+$$ D = B + \vec{u} + \vec{v}; E = B - \vec{u} - \vec{v} $$
+$$ \hat{u} = \frac{A-B}{ |A-B| } $$
+$$ cos(\beta-90) = sin(\beta) = \frac{t}{u}$$
+$$ u = \frac{t}{sin(\beta)} $$
+$$ \vec{u} = \hat{u} \cdot u $$
+$$ \vec{u} = \frac{A-B}{ |A-B| } \cdot \frac{t}{sin(\beta)} $$
+$$ Similarly, \vec{v} = \frac{C-B}{ |C-B| } \cdot \frac{t}{sin(\beta)} $$
 
-My game's using 3D models. 
-So, we need to project 3D space to a 2D plane.
-But we can't just project it to any 2D plane.
-We need to project them to a plane facing the camera:
-if we didn't, things would look thinner and distorted when tilted away from it.
-And since the camera can be constantly moving and rotating, the plane facing it will change every frame.
+However, there's a problem: This really only makes sense in 2D. My game is 3D.
+
+## Shaders, screen space and rendering pipelines
+
+So, to calculate the miter joints, we need to crunch down 3D space to a 2D plane.
+Specifically, we need to know where the vertices are in the screen.
+This is no easy task:
+since the camera can be constantly moving and rotating what the screen sees changes every frame.
+And that doesn't take into account how the model moves around the world.
 Even if you're familiar with linear algebra, this seems like a massive undertaking...
 Thankfully, it's not one we have to do!
 
 To know why, we need to get into the OpenGL rendering pipeline.
-After all, when the camera renders the game, it projects 3D space (the world of the game) into a 2D plane (the screen).
-On top of that, the screen plane always faces the camera, since that's kind of what rendering is.
-We'd like to do the exact same thing.
-
-### So, how does OpenGL project to the screen?
+After all, when the camera renders the game, it seems to project the 3D world of the game into the screen just fine. 
+So, how does OpenGL render?
 
 The most intuitive way to render a 3D scene would be following physics:
 casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they'd be, and which hit the camera.
-This would be wasteful, as most rays would go flying off into the sky and never hit it.
+This would be wasteful, as most rays would go flying off into the sky.
 
-But we could simply reverse that process, casting rays from the camera and calculating what light sources they hit.
-That's what raytracing is.
-But it has only recently become doable in real time for consumer computers,
-and OpenGL was made in the 90s.
-So, there has to be a way more efficient way.
-
-<!-- TODO! -->
-Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient.
-That algorithm turns a bunch of triangles whose vertices you know into actual colored pixels.
+But if you simply reverse that process,
+casting rays from the camera and calculating what light sources they hit,
+you get raytracing!
+It's also relatively inefficient, though:
+it has only recently-ish become doable in real time for consumer computers.
+OpenGL was made in the 90s:
+it has to be doing something different.
 
 {{<figure src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Top-left_triangle_rasterization_rule.gif" width=500vp >}}
-
-And 3D models are just a bunch of triangles in 3D space.
+[Triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization)
+is turning a bunch of triangles into actual colored pixels,
+and it turns out it's *really* efficient.
+And, as we saw, 3D models are just a bunch of triangles in 3D space.
 If we could know where those triangles would be in the 2D screen plane
 (that is, project them there)
-we could use that efficient algorithm to turn them into pixels.
-And there we have it!
-Efficient rendering!
+we could use that algorithm to turn them into pixels.
+And there we have it, efficient rendering!
 
-### And how does OpenGL project vertices?
+### But wait, how does OpenGL project vertices?
 
-Have you ever heard of shaders?
-I first heard them used in Minecraft, where they're magic that makes the game look cool.
+It uses shaders!
+Ever heard of them?
+I found out about them because of Minecraft, where they seemed like magic that makes the game look cool.
 But what are they, really?
-Well, they're programs made to run in parallel in a graphics card.
-We, here, care about only one type: the vertex shader.
-It's applied to every vertex in the model to calculate where it ends up for the raster.
-By default, of course, this function projects the vertex to screen space.
 
+Well, they're programs made to run in parallel in a graphics card.
+For this explanation only one type matters: the vertex shader.
+It runs once for every vertex in a model.
+By default, it projects them to the screen to calculate the vertex's position for the raster.
 How does it do that?
 Linear algebra!
+
 If you're not familiar with it, I strongly recommend checking out [3Blue1Brown's series](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab) on it.
 But basically, positions are represented as vectors, which are just groups of numbers.
 A group or 3 numbers (3D vector) can represent 3D space by representing the $x$, $y$ and $z$ position of each number, like so:
@@ -168,7 +173,7 @@ $$
 
 A matrix, likewise, is a grid of numbers.
 Multiplying a matrix by a vector can be interpreted as applying a transformation to it.
-For instance, this 2x2 matrix rotates the vector $\theta$ radians around the origin.
+For instance, this 2x2 matrix rotates the vector $\theta$ radians around the origin:
 
 $$
   \begin{bmatrix}
@@ -188,12 +193,14 @@ $$
 $$
 
 Critically, the matrix doesn't depend on the vector, only on the angle.
-That means that if we had any amount of 2D points, to rotate them around the origin you just multiply the same matrix by all of them.
-That's how OpenGL projects the vertices: the shader is the program that multiplies matrices by each vertex's position.
+That means that if we had any 2D point, to rotate it around the origin you just multiply it by that matrix.
+That's how OpenGL projects the vertices:
+the shader multiplies the appropriate tranformation matrices to each vertex's position.
+All done in parallel in the graphics card!
 
 One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
-That is because 3x3 matrices multiplied with a 3D vector can only rotate and scale, but not translate.
-4x4 matrices multiplied with a 3D vector extended with a $1$ can:
+That is because 3x3 matrices can only rotate and scale a 3D vector, but never translate.
+However, 4x4 matrices *can* translate a 3D vector extended with a $1$ like so:
 $$
   \begin{bmatrix}
     1 & 0 & 0 & dx\\\\
@@ -213,6 +220,7 @@ $$
     x+dx\\\\y+dy\\\\z+dz\\\\1
   \end{bmatrix}
 $$
+Since these transformations keep $w$ at $1$, they can be done one after another without issue.
 
 And this finally takes us to:
 
@@ -222,22 +230,25 @@ And this finally takes us to:
 
 Since vertices come in models, they're given in the local space of the model.
 The model matrix translates, rotates and scales the model to put it in the game world (world space).
-This matrix is what changes as the model's position updates.
+This matrix changes as the model's position updates.
 
 The view matrix rotates the world so that the camera is at
 $\begin{bmatrix} 0&0&0 \end{bmatrix}$ facing towards $z+$.
 That leaves the vertices in view space, also called camera or eye space.
-Note that as far as OpenGL is concerned, there is no such thing as a camera.
-The position and rotation of the engine's camera are just used to calculate what the view matrix should be.
+Note that, as far as OpenGL is concerned, there is no such thing as a camera.
+Godot just uses its position and rotation to calculate this matrix.
 
 Finally, the projection matrix projects the vision field of the camera into a cube that goes from
 $\begin{bmatrix} -1&-1&-1 \end{bmatrix}$
 to
 $\begin{bmatrix} +1&+1&+1 \end{bmatrix}$.
-This is also where the field of view is applied, since the field of view decides what's actually in view of the camera.
-This space is called clip space because everything outside of that cube is clipped off because it wouldn't be in the screen.
-This transformation also doesn't actually keep the final coordinate, $w$, at $1$.
-It stores the $z$ the object had in view space in $w$:
+This is also where the field of view is applied, since it decides what's actually in view of the camera.
+This space is called clip space because,
+since the cube contains everything in view,
+everything outside it gets clipped off.
+
+This transformation doesn't keep the final coordinate, $w_{clip}$, at $1$.
+It stores how far away the object was from the camera in view space ($z_{view}$) in $w_{clip}$:
 
 $$
   \begin{bmatrix}
@@ -258,12 +269,13 @@ $$
     x_{clip}\\\\
     y_{clip}\\\\
     z_{clip}\\\\
-    z_{view}
+    w_{clip} = z_{view}
   \end{bmatrix}
 $$
 
-This is where the shader ends and OpenGL takes over.
-To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by $w_{clip}=z_{view}$.
+Clip space is where the shader ends, but not the pipeline.
+When transforming to screen-space, OpenGL takes over.
+To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by the depth: $w_{clip}=z_{view}$.
 That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
 After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution.
 Then, finally, the triangle rasterization algorithm can take over and render the scene.
@@ -279,16 +291,17 @@ void vertex() {
 {{</highlight>}}
 
 Writing your own shader just means modifying what code runs before OpenGL transforms to screen space.
-So, we'll make our shader take things to the screen plane, calculate the offset to reach $D$ and $E$, and then return that as the position.
+So, we'll make our shader take things to the screen plane, calculate $\vec{u}+\vec{v}$ to reach $D$ and $E$, and then return that as the position.
 
 {{<highlight glsl "lineNos=inline">}}
 
 void vertex() {
-	vec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1));
+	vec4 vect = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1);
+  // Note that MODELVIEW_MATRIX is just MODEL_MATRIX * VIEW_MATRIX
 
 	// ... transform to screen space
 
-	vec4 offset = // ... calculate offset
+	vec4 offset = u + v;
 
 	// ... transform back to clip space
 
@@ -304,10 +317,10 @@ void vertex() {
 First, we actually need to change the mesh, turning each line into two faces.
 How you do that will depend a lot on the engine you're using.
 In others, maybe you could do this in a Blender export script.
-However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
 
-In Godot, the only way to pass in extra arguments that aren't uniform (the same for all vertices)
-is through using the [custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
+However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
+In Godot, the only way to pass in extra arguments is through using the
+[custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
 And I didn't find a way to set up custom0 and custom1 from outside.
 So, we're using an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
 that modifies the mesh, populates the customs, and saves the modified mesh for later use!
@@ -336,7 +349,7 @@ func process_mesh(node: MeshInstance3D):
 {{</highlight>}}
 
 There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one.
-Specially, the case were three edges meet in one vertex can look very bad:
+This can go wrong. For example, if three edges meet in one vertex it can look very bad:
 
 {{<figure src="/sspl/miter-joint-three.svg" width=500vp class="svg">}}
 
@@ -388,15 +401,13 @@ func process_mesh(node: MeshInstance3D):
 
 {{</highlight>}}
 
-You can see the actual source code for the file [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/miter-joint-import-script.gd).
+You can see the actual source code [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/miter-joint-import-script.gd).
 
 ### The shader
 
-So. If we want to apply our miter joints to give lines width, we'd want to do it in screen space.
-But we can't do that.
-We can only get the vector to clip space.
-Except we know that to get to screen space OpenGL simply applies perspective and scales with the resolution.
-So, we need to do that when before we calculate the miter joints and undo it after.
+The miter joints need to be done in screen space.
+So, the shader applies perspective and scales with the resolution before calculating $D$ and $E$,
+then undoes it after.
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -456,7 +467,7 @@ void vertex() {
 {{<figure src="/sspl/gif-no-limit.gif">}}
 
 Woah! That... What? Why does it do that?
-Well, you can see if you play around in GeoGebra <!-- TODO! --> that when the angle gets sharp the joint gets really long...
+Well, you can see if you play around in [GeoGebra](https://www.geogebra.org/calculator/rhsczxkf) that when the angle gets sharp the joint gets really long...
 In fact, as the angle becomes 0º the length goes up to infinity.
 So, an easy solution might be to add a limit to the distance the joint can have from its original point.
 
@@ -514,9 +525,7 @@ So, we add another vertex and another face!
 
 {{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
-$L$ normally stays still. But when lenghts start growing up to infinity, we do a switcheroo to $F$ and $G$ and put $L$ where the tip would be, limiting its distance.
-
-This generates $L$ and its required face.
+$L$ normally stays still. But when the lenght starts growing up to infinity, we do a switcheroo to $F$ and $G$ and put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:
 
 {{<highlight gd "lineNos=inline">}}
 
@@ -633,3 +642,18 @@ The width and edge are both preserved!
 And now, for a final show, let's see what it looks like on the ship I've made:
 
 {{<figure src="/sspl/gif-new-ship.gif">}}
+
+## Endnote
+
+So. Been a wild journey, ey?
+When I started making this, I didn't know anything about OpenGL, shaders, Blender or Godot.
+I expected this shader to be an easy, short project.
+Then I thought it was way beyond my skill or knowledge to make.
+
+If nothing else, I hope this shows that if you put your mind to it,
+and search for experienced people to help you,
+you might just go beyond what you think you're capable of.
+
+It was a long journey, and now it's over.
+It was hard, but that's why I get to be a little more proud of myself,
+and to write a hopefully nice article about it.
