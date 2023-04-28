@@ -1,0 +1,20 @@
+<script>
+  function set_svg_themes(inverted) {
+    const lightTheme = localStorage.getItem("pref-theme") === "light";
+    const svgs = document.getElementsByClassName("svg");
+    for (let i = 0; i < svgs.length; i++) {
+      let image = svgs.item(i);
+      if (inverted != lightTheme) {
+        image.style.webkitFilter = "";
+      } else {
+        image.style.webkitFilter = "invert(94%) sepia(6%) saturate(0%) hue-rotate(281deg) brightness(94%) contrast(90%)"; // Set with https://codepen.io/sosuke/pen/Pjoqqp
+      }
+    }
+  }
+
+  set_svg_themes(false);
+
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    set_svg_themes(true);
+  })
+</script>

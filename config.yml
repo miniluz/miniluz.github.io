@@ -1,0 +1,11 @@
+baseURL: http://example.org/
+languageCode: en-us
+title: My New Hugo Site
+theme: PaperMod
+
+params:
+  homeInfoParams:
+    Title: Hi there wave
+    Content: Can be Info, etc.
+
+  ShowReadingTime: true

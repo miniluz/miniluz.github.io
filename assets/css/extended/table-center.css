@@ -1,0 +1,9 @@
+table {
+  display: table;
+  table-layout: fixed;
+}
+
+.post-content img {
+  margin-left:auto;
+  margin-right:auto;
+}
