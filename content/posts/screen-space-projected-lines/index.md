@@ -66,14 +66,20 @@ The ship's primitive is GL_LINES, and though OpenGL supports setting a width for
 So, as long as the model only has edges, they're stuck being one pixel wide.
 
 So, instead, we'll make a model that replaces every line with four vertices forming five edges and two faces, like so:
+
 {{<figure src="/sspl/line-to-faces.svg" width=200vp class="svg">}}
+
 If we push out the new edges perpendicularly to the line it gets a width!
 Except. What happens when two lines meet?
+
 {{<figure src="/sspl/non-miter-joint.svg" width=250vp class="svg">}}
+
 Oops...
 Well. How do we handle this.
 Have you ever paid attention to door frames?
-<!-- TODO!: Image of door frame -->
+
+{{<figure src="/sspl/door_frame.jpg" width=200vp >}}
+
 Yeah. That style of joint is called a miter joint.
 
 <!-- TODO!: Image of joint -->
@@ -263,12 +269,313 @@ Godot only gives you the matrices up to clip space, but that's not a problem.
 We know that to get to screen space OpenGL simply applies perspective and scales with the resolution.
 So we need to do that when before we calculate the miter joints and to stop doing it after.
 
-First we actually need to turn each line into two faces, and how you do that will depend a lot on the engine you're using.
-In Godot, I'm using an import script for that.
-That way it's only run once and saved forever.
+### The import script
+
+First we actually need to change the mesh, turning each line into two faces.
+How you do that will depend a lot on the engine you're using.
+In others you could do this in a Blender export script.
+However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
+In Godot, the only way to pass in extra arguments that aren't uniform (the same for all vertices)
+is through using the [custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
+And I haven't found a way to set up custom0 and custom1 from outside Godot.
+So, we're using an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
+that modifies the mesh, populates the customs, and saves the modified mesh for later use!
+The structure should look something like this:
+
+{{< highlight gd >}}
+
+func process_mesh(node: MeshInstance3D):
+  for vertex in mesh:
+    prev = previous_vertex
+    next = next_vertex
+    
+    new_vertices += [vertex, vertex]
+    new_custom0  += [(next, +1), (next, -1)]
+    new_custom1  += [(prev, +1), (prev, -1)]
+    # Storing the +1 and -1 here will allow us to make one u+v and the other u-v in the shader
+
+  for edge in mesh:
+    new_faces += get_faces(edge)
+
+  new_mesh = generate_mesh(new_vertices, new_custom0, ...)
+
+  save(new_mesh)
+
+{{</ highlight >}}
+
+There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one.
+Specially, the case were three edges meet in one vertex can look very bad:
+
+<!-- TODO! -->
+
+I've decided to handle other cases like so:
+
+{{< highlight gd >}}
+
+func process_mesh(node: MeshInstance3D):
+  for vertex in mesh:
+    if len(neighbors) == 1:
+      prev = neighbors[0] 
+      next = vertex + (vertex - prev)
+      # p -- v -- n, done to keep the end straight.
+    
+    elif len(neighbors) == 2:
+      prev = neighbors[0]
+      next = neighbors[1]
+
+    elif len(neighbors) == 3:
+      neighbors.sort_by_distance() # arbitrary, just looks nice in my use case.
+      next = neighbors[0]
+      prev = neighbors[1]
+      # neighbors[2] will be handled later
+
+    else:
+      continue # vertices with other ammounts of neighbors will not be processed
+    
+    new_vertices += [vertex, vertex]
+    new_custom0  += [(next, +1), (next, -1)]
+    new_custom1  += [(prev, +1), (prev, -1)]
+
+    if len(neighbors) == 3:
+      extra = neighbors[2]
+      edge = get_edge(vertex, extra)
+
+      new_vertices += [vertex, vertex] # Create new vertex
+      new_custom0  += [(next, +1), (next, -1)]
+      new_custom1  += [(prev, +1), (prev, -1)]
+
+      edge = (new_vertex, edge[1]) # Preserve the other end of the edge
+      # This is needed in case two ends of an edge are both extras.
+
+  for edge in mesh:
+    new_faces += get_faces(edge)
+
+  new_mesh = generate_mesh(new_vertices, new_custom0, ..)
+
+  save(new_mesh)
+
+{{</ highlight >}}
+
+You can see the actual source code for the file [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/miter-joint-import-script.gd).
 
 ### The shader
 
-Now that the model has been processed, we can start writing the shader.
+Now, based on the shader math done, we can do the shader:
+
+{{< highlight glsl "lineNos=inline">}}
+
+shader_type spatial;
+render_mode cull_disabled;
+
+uniform float thickness;
+
+void vertex() {
+	vec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1));
+	
+	if (CUSTOM0.w * CUSTOM0.w < 0.1) {
+		/* This runs if CUSTOM0 is not set */
+		/* It's done so you can see what the ship looks like in the editor normally */
+		
+		POSITION = vect;
+	
+	}
+	
+	vec4 next = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM0.xyz, 1));
+	vec4 prev = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM1.xyz, 1));
+	
+	vec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.);
+	vec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.);
+	
+	vec2 A = prev.xy * scaling / prev.z;
+	vec2 B = vect.xy * scaling / vect.z;
+	vec2 C = next.xy * scaling / next.z;
+	
+	vec2 AB = normalize(A-B);
+	vec2 CB = normalize(C-B);
+	float cosb = dot(AB, CB);
+	vec2 offset;
+	
+	if (cosb * cosb > 0.99) {
+		// Done so you don't take the inverse square root of 0.
+		offset = vec2(-AB.y, AB.x) * CUSTOM0.w;
+	}
+	else {
+		
+		float isinb = inversesqrt(1. - cosb * cosb);
+		
+		vec2 u = AB * CUSTOM0.w * isinb;
+		vec2 v = CB * CUSTOM0.w * isinb;
+		
+		offset = u + v;
+	
+	}
+	
+	POSITION = vect + vec4(offset * inv_scaling * thickness,0,0);
+	
+}
+
+{{</ highlight >}}
+
+<!-- TODO! Insert no limit gif -->
+
+Woah! That... What? Why does it do that?
+Well, you can see if you play around in the Geogebra that when the angle gets sharp the joint gets really long... So we might want to add a limit to it.
+
+{{< highlight glsl "lineNos=inline, lineNoStart=45">}}
+
+float excess = length(offset) - limit;
+
+if (excess > 0.) {
+	offset = normalize(offset) * limit;
+}
+
+{{</ highlight >}}
+
+<!-- TODO! Insert normal limit gif -->
+
+...Huh. Now the lines get thinner...
+
+I have an idea!
+As the two joint points stretch towards infinity, the two other points where the line cross grow closer.
+
+<!-- TODO! Add ilustration -->
+
+So what if we just, after a certain threshold, just swap between using the normal joints and the other two points!
+Let's call that a switcheroo limit:
+
+{{< highlight glsl "lineNos=inline, lineNoStart=45">}}
+
+float excess = length(offset) - limit;
+
+if (excess > 0.) {
+	offset = u - v;
+}
+
+{{</ highlight >}}
+
+Welp, now the edge is gone...
+Is there a way we can preserve the sharp pointy edge and thickness at the same time?
+
+## Luz joints
+
+Yes!
+We want the thickness to be preserved, so we can do a switcheroo.
+But we also want the pointiness not to grow to infinity.
+So we add another vertex and another face!
+
+<!-- TODO! Luz joint illustration -->
+
+When things start blowing up to infinity, we do a switcheroo and limit the length of the new face
+
+These are the changes needed: <!-- TODO! -->
+{{< highlight gd >}}
+
+func process_mesh(node: MeshInstance3D):
+  for vertex in mesh:
+    # ... neighbor logic
+
+    prev = previous_vertex
+    next = next_vertex
+    
+    new_vertices += [vertex, vertex]
+    new_custom0  += [(next, +1), (next, -1)]
+    new_custom1  += [(prev, +1), (prev, -1)]
+
+    # Luz joint!
+    new_vertices += [vertex, vertex]
+    new_custom0  += [(next, +1), (next, -1)]
+    new_custom1  += [(prev, -1), (prev, +1)]
+    # Having different sign accross the customs will allow us to detect them in the shader
+
+    # ... 3 neighbor logic
+
+  for edge in mesh:
+    new_faces += get_faces(edge)
+
+  new_mesh = generate_mesh(new_vertices, new_custom0, ...)
+
+  save(new_mesh)
+
+{{</ highlight >}}
+
+You can again find the actual source for this [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/luz-joint-import-script.gd).
+
+{{< highlight glsl "lineNos=inline">}}
+
+shader_type spatial;
+render_mode cull_disabled;
+
+uniform float thickness;
+uniform float limit;
 
 
+void vertex() {
+	vec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1));
+	
+	vec4 next = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM0.xyz, 1));
+	vec4 prev = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM1.xyz, 1));
+	
+	vec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.);
+	vec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.);
+	
+	vec2 A = prev.xy * scaling / prev.z;
+	vec2 B = vect.xy * scaling / vect.z;
+	vec2 C = next.xy * scaling / next.z;
+	
+	vec2 AB = normalize(A-B);
+	vec2 CB = normalize(C-B);
+	float cosb = dot(AB, CB);
+	vec2 offset;
+	
+	if (cosb * cosb > 0.999999) {
+		if (CUSTOM0.w == CUSTOM1.w) {
+			offset = vec2(-AB.y, AB.x) * CUSTOM0.w;
+		}
+		else {
+			offset = AB * CUSTOM0.w * limit;
+		}
+	}
+	else {
+		
+		float isinb = inversesqrt(1. - cosb * cosb);
+		
+		vec2 u = AB * CUSTOM0.w * isinb;
+		vec2 v = CB * CUSTOM1.w * isinb;
+		
+		if (CUSTOM0.w == CUSTOM1.w) {
+			if (cosb > 0.) {
+				offset = u - v;
+			} else {
+				offset = u + v;
+			}
+		} else {
+			if (cosb > 0.) {
+				offset = u - v;
+			} else {
+				offset = vec2(0., 0.);
+			}
+			
+			float excess = length(offset) - limit;
+			
+			if (excess > 0.) {
+				offset = normalize(offset) * limit;
+			}
+			
+		}
+	
+	}
+	
+	POSITION = vect + vec4(offset * inv_scaling * thickness,0,0);
+	
+	if (CUSTOM0.w * CUSTOM0.w < 0.1) {
+		/* This runs if CUSTOM0 is not set */
+		/* It's done so you can see what the ship looks like in the editor normally */
+		
+		POSITION = vect;
+	
+	}
+}
+
+{{</ highlight >}}
+
+<!-- TODO! luz joint gif -->
