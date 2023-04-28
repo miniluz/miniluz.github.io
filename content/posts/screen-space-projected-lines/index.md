@@ -220,21 +220,22 @@ And this finally takes us to:
 
 {{<figure src="/sspl/rendering-pipeline.svg" width=100% class="svg">}}
 
-Since vertices come in models, they've given in the local space of the model.
-The model matrix translates, rotates and scales the model to put it in the world, in world space.
-This matrix is what changes as the character's position updates.
+Since vertices come in models, they're given in the local space of the model.
+The model matrix translates, rotates and scales the model to put it in the game world (world space).
+This matrix is what changes as the model's position updates.
+
 The view matrix rotates the world so that the camera is at
 $\begin{bmatrix} 0&0&0 \end{bmatrix}$ facing towards $z+$.
 That leaves the vertices in view space, also called camera or eye space.
 Note that as far as OpenGL is concerned, there is no such thing as a camera.
-The position and rotation of the engine's camera are just used to calculate what the view matrix should be each frame.
+The position and rotation of the engine's camera are just used to calculate what the view matrix should be.
 
 Finally, the projection matrix projects the vision field of the camera into a cube that goes from
 $\begin{bmatrix} -1&-1&-1 \end{bmatrix}$
 to
 $\begin{bmatrix} +1&+1&+1 \end{bmatrix}$.
 This is also where the field of view is applied, since the field of view decides what's actually in view of the camera.
-This space is called clip space because everything outside of that cube is clipped off, because it wouldn't be in the screen.
+This space is called clip space because everything outside of that cube is clipped off because it wouldn't be in the screen.
 This transformation also doesn't actually keep the final coordinate, $w$, at $1$.
 It stores the $z$ the object had in view space in $w$:
 
@@ -261,8 +262,9 @@ $$
   \end{bmatrix}
 $$
 
-And, to apply perspective, we simply divide $x_{clip}$ and $y_{clip}$ by $w_{clip}=z_{view}$.
-This basically creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
+This is where the shader ends and OpenGL takes over.
+To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by $w_{clip}=z_{view}$.
+That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
 After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropiate resolution.
 Then, finally, the triangle rasterization algorithm can take over and render the scene.
 
@@ -276,22 +278,37 @@ void vertex() {
 
 {{</highlight>}}
 
-## Implementing it in Godot
+Writing your own shader just means modifying what code runs before OpenGL transforms to screen space.
+So we'll make our shader take things to the screen plane, calculate the offset to reach $D$ and $E$, and then return that as the position.
 
-So. If we want to apply our miter joints to give lines width we simply have to do it in screen space!
-Godot only gives you the matrices up to clip space, but that's not a problem.
-We know that to get to screen space OpenGL simply applies perspective and scales with the resolution.
-So we need to do that when before we calculate the miter joints and to stop doing it after.
+{{<highlight glsl "lineNos=inline">}}
+
+void vertex() {
+	vec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1));
+
+	// ... transform to screen space
+
+	vec4 offset = // ... calculate offset
+
+	// ... transform back to clip space
+
+	POSITION = offset + vect;
+}
+
+{{</highlight>}}
+
+## Implementing it in Godot
 
 ### The import script
 
 First we actually need to change the mesh, turning each line into two faces.
 How you do that will depend a lot on the engine you're using.
-In others you could do this in a Blender export script.
+In others, maybe you could do this in a Blender export script.
 However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
+
 In Godot, the only way to pass in extra arguments that aren't uniform (the same for all vertices)
 is through using the [custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
-And I haven't found a way to set up custom0 and custom1 from outside Godot.
+And I didn't found a way to set up custom0 and custom1 from outside.
 So, we're using an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
 that modifies the mesh, populates the customs, and saves the modified mesh for later use!
 The structure should look something like this:
@@ -306,7 +323,8 @@ func process_mesh(node: MeshInstance3D):
     new_vertices += [vertex, vertex]
     new_custom0  += [(next, +1), (next, -1)]
     new_custom1  += [(prev, +1), (prev, -1)]
-    # Storing the +1 and -1 here will allow us to make one u+v and the other u-v in the shader
+    # Storing the +1 and -1 here will allow us
+    # to make one u+v (D) and the other -u-v (E) in the shader
 
   for edge in mesh:
     new_faces += get_faces(edge)
@@ -320,9 +338,9 @@ func process_mesh(node: MeshInstance3D):
 There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one.
 Specially, the case were three edges meet in one vertex can look very bad:
 
-<!-- TODO! -->
+{{<figure src="/sspl/miter-joint-three.svg" width=500vp class="svg">}}
 
-I've decided to handle other cases like so:
+I've decided to handle these cases like so:
 
 {{<highlight gd "lineNos=inline">}}
 
@@ -374,7 +392,11 @@ You can see the actual source code for the file [here](https://github.com/minilu
 
 ### The shader
 
-Now, based on the shader math done, we can do the shader:
+So. If we want to apply our miter joints to give lines width we'd want to do it in screen space.
+But we can't do that.
+We can only get the vector to clip space.
+Except we know that to get to screen space OpenGL simply applies perspective and scales with the resolution.
+So we need to do that when before we calculate the miter joints and undo it after.
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -387,8 +409,8 @@ void vertex() {
 	vec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1));
 	
 	if (CUSTOM0.w * CUSTOM0.w < 0.1) {
-		/* This runs if CUSTOM0 is not set */
-		/* It's done so you can see what the ship looks like in the editor normally */
+		/* This runs if CUSTOM0 is not set.
+		It's done so you can see what the model looks like in the editor if it's not been processed */
 		
 		POSITION = vect;
 	
@@ -400,9 +422,9 @@ void vertex() {
 	vec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.);
 	vec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.);
 	
-	vec2 A = prev.xy * scaling / prev.z;
-	vec2 B = vect.xy * scaling / vect.z;
-	vec2 C = next.xy * scaling / next.z;
+	vec2 A = prev.xy * scaling / prev.w;
+	vec2 B = vect.xy * scaling / vect.w;
+	vec2 C = next.xy * scaling / next.w;
 	
 	vec2 AB = normalize(A-B);
 	vec2 CB = normalize(C-B);
@@ -429,6 +451,7 @@ void vertex() {
 }
 
 {{</highlight >}}
+[no-limit.gdshader](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/no-limit.gdshader)
 
 {{<figure src="/sspl/gif-no-limit.gif">}}
 
@@ -446,6 +469,7 @@ if (excess > 0.) {
 }
 
 {{</highlight>}}
+[normal-limit.gdshader](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/normal-limit.gdshader)
 
 {{<figure src="/sspl/gif-low-limit.gif">}}
 
@@ -453,9 +477,9 @@ if (excess > 0.) {
 Of course, that makes sense. The length of the joint needs to go up to infinity to preserve the width.
 So if we cap its length, we have no choice but to lose some width...
 
-I have an idea!
+Except. I have an idea!
 There are actually two other points where the lines cross when making miter joints!
-As the two joint points stretch towards infinity, the two other points where the lines cross grow closer.
+As $D$ and $E$ stretch towards infinity, these other points come closer:
 
 {{<figure src="/sspl/miter-joint-complete.svg" width=300vp class="svg">}}
 
@@ -471,6 +495,7 @@ if (excess > 0.) {
 }
 
 {{</highlight>}}
+[switcheroo.gdshader](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/switcheroo.gdshader)
 
 {{<figure src="/sspl/gif-switch-limit.gif">}}
 
@@ -480,7 +505,7 @@ But it looks weird that the edge suddenly disappears.
 And I can't think of a way to transition smoothly using only those two vertices.
 Is there a way we can preserve the sharp pointy edge and thickness at the same time?
 
-## Luz joints
+## Luz joints!
 
 Yes!
 Since we want the thickness to be preserved, we can do a switcheroo.
@@ -489,7 +514,9 @@ So we add another vertex and another face!
 
 {{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
-When things start blowing up to infinity, we do a switcheroo to $F$ and $G$, but also limit the distance of $L$.
+$L$ normally stays still. But when lenghts start growing up to infinity, we do a switcheroo to $F$ and $G$ and put $L$ where the tip would be, limiting its distance.
+
+This generates $L$ and its required face.
 
 {{<highlight gd "lineNos=inline">}}
 
@@ -520,8 +547,7 @@ func process_mesh(node: MeshInstance3D):
   save(new_mesh)
 
 {{</highlight>}}
-
-You can again find the actual source for this [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/luz-joint-import-script.gd).
+[luz-joint-import-script.gd](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/luz-joint-import-script.gd)
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -541,9 +567,9 @@ void vertex() {
 	vec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.);
 	vec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.);
 	
-	vec2 A = prev.xy * scaling / prev.z;
-	vec2 B = vect.xy * scaling / vect.z;
-	vec2 C = next.xy * scaling / next.z;
+	vec2 A = prev.xy * scaling / prev.w;
+	vec2 B = vect.xy * scaling / vect.w;
+	vec2 C = next.xy * scaling / next.w;
 	
 	vec2 AB = normalize(A-B);
 	vec2 CB = normalize(C-B);
@@ -591,8 +617,6 @@ void vertex() {
 	POSITION = vect + vec4(offset * inv_scaling * thickness,0,0);
 	
 	if (CUSTOM0.w * CUSTOM0.w < 0.1) {
-		/* This runs if CUSTOM0 is not set */
-		/* It's done so you can see what the ship looks like in the editor normally */
 		
 		POSITION = vect;
 	
@@ -600,11 +624,12 @@ void vertex() {
 }
 
 {{</highlight>}}
+[luz-joint.gdshader](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/luz-joint.gdshader)
 
 {{<figure src="/sspl/gif-luz-joint.gif">}}
 
 There we go!
 The width and edge are both preserved!
-Now, to finish this article out, let's see what it looks like on the ship I've made:
+And now, for a final show, let's see what it looks like on the ship I've made:
 
 {{<figure src="/sspl/gif-new-ship.gif">}}
