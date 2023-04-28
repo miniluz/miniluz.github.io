@@ -12,17 +12,21 @@ svg: true
 ## Introduction
 
 This article's purpose is to explain to beginners how to do vector graphics.
-I want to cover what I needed to truly understand what I was doing.
-So, I'll go into detail about things that might appear basic to some, but that are nontheless necessary (like the OpenGL rendering pipeline and miter joints).
-I hope that the article, though it's written around Godot, will provide a good foundation so that you can do this in whichever engine you want, and to expand on what's written here.
+I've cover here all I needed to know to truly understand what I was doing.
+So, I'll go into detail about things that are basic to some people, but that are nontheless necessary
+(like the OpenGL rendering pipeline and miter joints).
+Though the article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on what's written here.
 
-If you're already familiar with that, you might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl), which was the article I first found on the subject.
-This article is mostly about the basis you might need to truly understand everything said there, and how to implement it in more detail.
+You might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl), which was the article I first found on the subject.
+It is much, much briefer, but it won't cover the basic knowledge you need.
+If you feel like you already have it, it'll probably do you better, though.
+
+## Why vector graphics?
 
 I half-developed some silly games when I was a few years younger.
 I always got bored and eventually abandoned them.
-Now that I've started university, though, I became friends with someone who's had a lot more experience than me, and I've retroactively realiced I had massive Dunning-Kruger.
-So I decided to work on game development again!
+But now that I've started university, I've become friends with someone who has a lot more experience, and I've retroactively realiced I had massive Dunning-Kruger.
+So I decided to work on another game.
 
 I'd never written a [game design document](https://gamedevbeginner.com/how-to-write-a-game-design-document-with-examples/) before; it's one of the things my friend insisted I do that have made everything easier.
 Particularly, when writing it out I noted one of the limitations of the game was going to be my artistic abilities.
@@ -31,10 +35,11 @@ But I remembered a really neat phone game called [PewPew](https://pewpew.live) I
 So I decided to give those a shot!
 How hard could it be?
 
-I opened [Blender](https://www.blender.org/) and made some models using only edges, and opened them up in [Godot](https://godotengine.org/).
+I opened [Blender](https://www.blender.org/) and made some models using only edges, and opened them up in Godot.
 I realized that they were only one pixel thick lines, and they weren't very visible.
-So that's our goal! To make edges have a set width.
-So I decided to go into Blender, convert my model into a curve to add a bevel. That replaced every edge with a cylinder.
+So I set out to fix that.
+
+Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder.
 <!-- TODO!: Put an image of Blender -->
 That worked... Ok.
 Except where lines met.
@@ -82,11 +87,11 @@ Have you ever paid attention to door frames?
 
 Yeah. That style of joint is called a miter joint.
 
-<!-- TODO!: Image of joint -->
+{{<figure src="/sspl/miter-joint.svg" width=500vp class="svg">}}
 We project two lines around the edges and find the points where they intersect.
-Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points!
-[Here](TODO) is a GeoGebra where you can try this out,
-and [here](TODO) is an article where you can see how it's worked out.
+Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points ($D$ and $E$).
+[Here](https://www.geogebra.org/calculator/rhsczxkf) is a GeoGebra where you can try this out,
+and [here](TODO!) is an article where you can see how it's worked out.
 <!-- TODO!: FIX! -->
 
 However, there's a problem: This really only makes sense in 2D.
@@ -122,9 +127,9 @@ and we've had 3D games since the 90s.
 So, there has to be a way more efficient way.
 
 Yes, there is.
-Turns out, triangle rasterization is really efficient.
+Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient.
 Triangle rasterization is the process of turning a bunch of triangle whose vertices you know into actual colored pixels.
-<!-- TODO!: Triangle rasterization thing -->
+{{<figure src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Top-left_triangle_rasterization_rule.gif" width=500vp >}}
 And so, you can see where we're going:
 if 3D models are collections of triangles,
 and OpenGL can project each vertex into where they'd be on the screen,
@@ -217,7 +222,7 @@ Since vertices come in models, they've given in the local space of the model.
 The model matrix translates, rotates and scales the model to put it in the world, in world space.
 This matrix is what changes as the character's position updates.
 The view matrix rotates the world so that the camera is at
-$\begin{bmatrix} 0&0&0 \end{bmatrix}$ facing towards $z+$. <!-- TODO!: Check -->
+$\begin{bmatrix} 0&0&0 \end{bmatrix}$ facing towards $z+$.
 That leaves the vertices in view space, also called camera or eye space.
 Note that as far as OpenGL is concerned, there is no such thing as a camera.
 The position and rotation of the engine's camera are just used to calculate what the view matrix should be each frame.
@@ -260,7 +265,14 @@ After this, clip space is translated so that the lower left corner of the cube i
 Then, finally, the triangle rasterization algorithm can take over and render the scene.
 
 So, we can finally take a look at what a shader does by default:
-<!-- TODO! -->
+
+{{<highlight glsl "lineNos=inline">}}
+
+void vertex() {
+	POSITION = PROJECTION_MATRIX * MODEL_MATRIX * VIEW_MATRIX * vec4(VERTEX, 1));
+}
+
+{{</highlight>}}
 
 ## Implementing it in Godot
 
@@ -282,7 +294,7 @@ So, we're using an [import script](https://docs.godotengine.org/en/stable/tutori
 that modifies the mesh, populates the customs, and saves the modified mesh for later use!
 The structure should look something like this:
 
-{{< highlight gd >}}
+{{<highlight gd "lineNos=inline">}}
 
 func process_mesh(node: MeshInstance3D):
   for vertex in mesh:
@@ -301,7 +313,7 @@ func process_mesh(node: MeshInstance3D):
 
   save(new_mesh)
 
-{{</ highlight >}}
+{{</highlight>}}
 
 There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one.
 Specially, the case were three edges meet in one vertex can look very bad:
@@ -310,7 +322,7 @@ Specially, the case were three edges meet in one vertex can look very bad:
 
 I've decided to handle other cases like so:
 
-{{< highlight gd >}}
+{{<highlight gd "lineNos=inline">}}
 
 func process_mesh(node: MeshInstance3D):
   for vertex in mesh:
@@ -354,7 +366,7 @@ func process_mesh(node: MeshInstance3D):
 
   save(new_mesh)
 
-{{</ highlight >}}
+{{</highlight>}}
 
 You can see the actual source code for the file [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/miter-joint-import-script.gd).
 
@@ -362,7 +374,7 @@ You can see the actual source code for the file [here](https://github.com/minilu
 
 Now, based on the shader math done, we can do the shader:
 
-{{< highlight glsl "lineNos=inline">}}
+{{<highlight glsl "lineNos=inline">}}
 
 shader_type spatial;
 render_mode cull_disabled;
@@ -395,7 +407,7 @@ void vertex() {
 	float cosb = dot(AB, CB);
 	vec2 offset;
 	
-	if (cosb * cosb > 0.99) {
+	if (cosb * cosb > 0.99) { // If AB and CB are parallel
 		// Done so you don't take the inverse square root of 0.
 		offset = vec2(-AB.y, AB.x) * CUSTOM0.w;
 	}
@@ -406,7 +418,7 @@ void vertex() {
 		vec2 u = AB * CUSTOM0.w * isinb;
 		vec2 v = CB * CUSTOM0.w * isinb;
 		
-		offset = u + v;
+		offset = u + v; // Offset to reach D and E
 	
 	}
 	
@@ -414,14 +426,16 @@ void vertex() {
 	
 }
 
-{{</ highlight >}}
+{{</highlight >}}
 
-<!-- TODO! Insert no limit gif -->
+{{<figure src="/sspl/gif-no-limit.gif">}}
 
 Woah! That... What? Why does it do that?
-Well, you can see if you play around in the Geogebra that when the angle gets sharp the joint gets really long... So we might want to add a limit to it.
+Well, you can see if you play around in the Geogebra that when the angle gets sharp the joint gets really long...
+In fact, as the angle becomes 0º the length goes up to infinity.
+So, an easy solution might be to add a limit to the distance the joint can have from its original point.
 
-{{< highlight glsl "lineNos=inline, lineNoStart=45">}}
+{{<highlight glsl "lineNos=inline, lineNoStart=45">}}
 
 float excess = length(offset) - limit;
 
@@ -429,46 +443,53 @@ if (excess > 0.) {
 	offset = normalize(offset) * limit;
 }
 
-{{</ highlight >}}
+{{</highlight>}}
 
-<!-- TODO! Insert normal limit gif -->
+{{<figure src="/sspl/gif-low-limit.gif">}}
 
 ...Huh. Now the lines get thinner...
+Of course, that makes sense. The length of the joint needs to go up to infinity to preserve the width.
+So if we cap its length, we have no choice but to lose some width...
 
 I have an idea!
-As the two joint points stretch towards infinity, the two other points where the line cross grow closer.
+There are actually two other points where the lines cross when making miter joints!
+As the two joint points stretch towards infinity, the two other points where the lines cross grow closer.
 
-<!-- TODO! Add ilustration -->
+{{<figure src="/sspl/miter-joint-complete.svg" width=300vp class="svg">}}
 
-So what if we just, after a certain threshold, just swap between using the normal joints and the other two points!
+So what if we just, after a certain threshold, just stop using $D$ and $E$ and start using $F$ and $G$?
 Let's call that a switcheroo limit:
 
-{{< highlight glsl "lineNos=inline, lineNoStart=45">}}
+{{<highlight glsl "lineNos=inline, lineNoStart=45">}}
 
 float excess = length(offset) - limit;
 
 if (excess > 0.) {
-	offset = u - v;
+	offset = u - v; // Switch to F and G
 }
 
-{{</ highlight >}}
+{{</highlight>}}
+
+{{<figure src="/sspl/gif-switch-limit.gif">}}
 
 Welp, now the edge is gone...
+Which makes sense, of course.
+But it looks weird that the edge suddenly disappears.
+And I can't think of a way to transition smoothly using only those two vertices.
 Is there a way we can preserve the sharp pointy edge and thickness at the same time?
 
 ## Luz joints
 
 Yes!
-We want the thickness to be preserved, so we can do a switcheroo.
+Since we want the thickness to be preserved, we can do a switcheroo.
 But we also want the pointiness not to grow to infinity.
 So we add another vertex and another face!
 
-<!-- TODO! Luz joint illustration -->
+{{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
-When things start blowing up to infinity, we do a switcheroo and limit the length of the new face
+When things start blowing up to infinity, we do a switcheroo to $F$ and $G$, but also limit the distance of $L$.
 
-These are the changes needed: <!-- TODO! -->
-{{< highlight gd >}}
+{{<highlight gd "lineNos=inline">}}
 
 func process_mesh(node: MeshInstance3D):
   for vertex in mesh:
@@ -481,7 +502,7 @@ func process_mesh(node: MeshInstance3D):
     new_custom0  += [(next, +1), (next, -1)]
     new_custom1  += [(prev, +1), (prev, -1)]
 
-    # Luz joint!
+    # Luz joint! (L vertex)
     new_vertices += [vertex, vertex]
     new_custom0  += [(next, +1), (next, -1)]
     new_custom1  += [(prev, -1), (prev, +1)]
@@ -496,11 +517,11 @@ func process_mesh(node: MeshInstance3D):
 
   save(new_mesh)
 
-{{</ highlight >}}
+{{</highlight>}}
 
 You can again find the actual source for this [here](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/luz-joint-import-script.gd).
 
-{{< highlight glsl "lineNos=inline">}}
+{{<highlight glsl "lineNos=inline">}}
 
 shader_type spatial;
 render_mode cull_disabled;
@@ -527,12 +548,12 @@ void vertex() {
 	float cosb = dot(AB, CB);
 	vec2 offset;
 	
-	if (cosb * cosb > 0.999999) {
-		if (CUSTOM0.w == CUSTOM1.w) {
+	if (cosb * cosb > 0.999999) { // If AB and CB are parallel
+		if (CUSTOM0.w == CUSTOM1.w) { // Normal vertex
 			offset = vec2(-AB.y, AB.x) * CUSTOM0.w;
 		}
-		else {
-			offset = AB * CUSTOM0.w * limit;
+		else { // L vertex
+			offset = AB * CUSTOM0.w * limit; // Push it out by max length
 		}
 	}
 	else {
@@ -542,17 +563,17 @@ void vertex() {
 		vec2 u = AB * CUSTOM0.w * isinb;
 		vec2 v = CB * CUSTOM1.w * isinb;
 		
-		if (CUSTOM0.w == CUSTOM1.w) {
+		if (CUSTOM0.w == CUSTOM1.w) { // Normal vertex
 			if (cosb > 0.) {
-				offset = u - v;
+				offset = u - v; // Use F and G
 			} else {
-				offset = u + v;
+				offset = u + v; // Use D and E
 			}
-		} else {
+		} else { // L vertex
 			if (cosb > 0.) {
-				offset = u - v;
+				offset = u - v; // Use L
 			} else {
-				offset = vec2(0., 0.);
+				offset = vec2(0., 0.); // Don't use L
 			}
 			
 			float excess = length(offset) - limit;
@@ -576,6 +597,12 @@ void vertex() {
 	}
 }
 
-{{</ highlight >}}
+{{</highlight>}}
 
-<!-- TODO! luz joint gif -->
+{{<figure src="/sspl/gif-luz-joint.gif">}}
+
+There we go!
+The width and edge are both preserved!
+Now, to finish this article out, let's see what it looks like on the ship I've made:
+
+{{<figure src="/sspl/gif-spaceship.gif">}}
