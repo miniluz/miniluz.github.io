@@ -13,7 +13,7 @@ svg: true
 
 This article's purpose is to explain to beginners how to do vector graphics.
 I've cover here all I needed to know to truly understand what I was doing.
-So, I'll go into detail about things that are basic to some people, but that are nontheless necessary.
+So, I'll go into detail about things that are basic to some people, but that are nonetheless necessary.
 Things like the OpenGL rendering pipeline and miter joints.
 
 And, though the article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on what's written here.
@@ -26,14 +26,14 @@ It is much, much briefer, but it won't cover the basic knowledge you need.
 
 I half-developed some silly games when I was a few years younger.
 I always got bored and eventually abandoned them.
-But now that I've started university, I've become friends with someone who has a lot more experience, and I've retroactively realiced I had massive Dunning-Kruger.
-So I decided to work on another game.
+But now that I've started university, I've become friends with someone who has a lot more experience, and I've retroactively realized I had massive Dunning-Kruger.
+So, I decided to work on another game.
 
 I'd never written a [game design document](https://gamedevbeginner.com/how-to-write-a-game-design-document-with-examples/) before; it's one of the things my friend insisted I do that have made everything easier.
 Particularly, when writing it out I noted one of the limitations of the game was going to be my artistic abilities.
 I'm decent at music, but there's no way I'm making 2D animations by hand that look good.
 But I remembered a really neat phone game called [PewPew](https://pewpew.live) I'd played as a child, and was inspired by its neat vector graphics.
-So I decided to give those a shot!
+So, I decided to give those a shot!
 How hard could it be?
 
 I opened [Blender](https://www.blender.org/) and made some models using only edges, and opened them up in Godot.
@@ -41,7 +41,7 @@ I realized that they were only one pixel thick lines, and they weren't very visi
 
 {{<figure src="/sspl/godot-pixel-thick.png" width=500vp >}}
 
-So I set out to fix that.
+So, I set out to fix that.
 Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder.
 
 {{<figure src="/sspl/blender-bevel.png" >}}
@@ -51,7 +51,7 @@ That worked alright, except where lines met.
 {{<figure src="/sspl/blender-edge.png" width=500vp >}}
 
 It seemed to me like a bit of a hack, and I wanted to reach a better solution.
-So I contacted the creator of PewPew, and eventually landed on their Discord server.
+So, I contacted the creator of PewPew, and eventually landed on their Discord server.
 He pointed me to Matt's article, and I started on this journey.
 
 ## Making lines have width
@@ -188,7 +188,7 @@ $$
 $$
 
 Critically, the matrix doesn't depend on the vector, only on the angle.
-That means that if we had any ammount of 2D points, to rotate them around the origin you just multiply the same matrix by all of them.
+That means that if we had any amount of 2D points, to rotate them around the origin you just multiply the same matrix by all of them.
 That's how OpenGL projects the vertices: the shader is the program that multiplies matrices by each vertex's position.
 
 One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
@@ -265,7 +265,7 @@ $$
 This is where the shader ends and OpenGL takes over.
 To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by $w_{clip}=z_{view}$.
 That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
-After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropiate resolution.
+After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution.
 Then, finally, the triangle rasterization algorithm can take over and render the scene.
 
 So, we can finally take a look at what a shader does by default:
@@ -279,7 +279,7 @@ void vertex() {
 {{</highlight>}}
 
 Writing your own shader just means modifying what code runs before OpenGL transforms to screen space.
-So we'll make our shader take things to the screen plane, calculate the offset to reach $D$ and $E$, and then return that as the position.
+So, we'll make our shader take things to the screen plane, calculate the offset to reach $D$ and $E$, and then return that as the position.
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -301,14 +301,14 @@ void vertex() {
 
 ### The import script
 
-First we actually need to change the mesh, turning each line into two faces.
+First, we actually need to change the mesh, turning each line into two faces.
 How you do that will depend a lot on the engine you're using.
 In others, maybe you could do this in a Blender export script.
 However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
 
 In Godot, the only way to pass in extra arguments that aren't uniform (the same for all vertices)
 is through using the [custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
-And I didn't found a way to set up custom0 and custom1 from outside.
+And I didn't find a way to set up custom0 and custom1 from outside.
 So, we're using an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
 that modifies the mesh, populates the customs, and saves the modified mesh for later use!
 The structure should look something like this:
@@ -392,11 +392,11 @@ You can see the actual source code for the file [here](https://github.com/minilu
 
 ### The shader
 
-So. If we want to apply our miter joints to give lines width we'd want to do it in screen space.
+So. If we want to apply our miter joints to give lines width, we'd want to do it in screen space.
 But we can't do that.
 We can only get the vector to clip space.
 Except we know that to get to screen space OpenGL simply applies perspective and scales with the resolution.
-So we need to do that when before we calculate the miter joints and undo it after.
+So, we need to do that when before we calculate the miter joints and undo it after.
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -456,7 +456,7 @@ void vertex() {
 {{<figure src="/sspl/gif-no-limit.gif">}}
 
 Woah! That... What? Why does it do that?
-Well, you can see if you play around in the Geogebra that when the angle gets sharp the joint gets really long...
+Well, you can see if you play around in GeoGebra <!-- TODO! --> that when the angle gets sharp the joint gets really long...
 In fact, as the angle becomes 0º the length goes up to infinity.
 So, an easy solution might be to add a limit to the distance the joint can have from its original point.
 
@@ -475,7 +475,7 @@ if (excess > 0.) {
 
 ...Huh. Now the lines get thinner...
 Of course, that makes sense. The length of the joint needs to go up to infinity to preserve the width.
-So if we cap its length, we have no choice but to lose some width...
+So, if we cap its length, we have no choice but to lose some width...
 
 Except. I have an idea!
 There are actually two other points where the lines cross when making miter joints!
@@ -510,7 +510,7 @@ Is there a way we can preserve the sharp pointy edge and thickness at the same t
 Yes!
 Since we want the thickness to be preserved, we can do a switcheroo.
 But we also want the pointiness not to grow to infinity.
-So we add another vertex and another face!
+So, we add another vertex and another face!
 
 {{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
