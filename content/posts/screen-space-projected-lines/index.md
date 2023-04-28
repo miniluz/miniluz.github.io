@@ -130,8 +130,8 @@ and OpenGL was made in the 90s.
 So, there has to be a way more efficient way.
 
 <!-- TODO! -->
-Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient:
-turning a bunch of triangle whose vertices you know into actual colored pixels.
+Turns out, [triangle rasterization](https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization) is really efficient.
+That algorithm turns a bunch of triangles whose vertices you know into actual colored pixels.
 
 {{<figure src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Top-left_triangle_rasterization_rule.gif" width=500vp >}}
 
