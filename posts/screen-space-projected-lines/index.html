@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Drawing Lines in Godot and Beyond! | miniluz</title>
+<meta name="keywords" content="">
+<meta name="description" content="Introduction This article&rsquo;s purpose is to explain to beginners how to do vector graphics. I&rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I&rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.
+If you feel like you&rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject.">
+<meta name="author" content="miniluz">
+<link rel="canonical" href="https://miniluz.github.com/posts/screen-space-projected-lines/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3064bfa368681a99d597e8d306629749763073d19c7af5d02546a64458ccc37d.css" integrity="sha256-MGS/o2hoGpnVl&#43;jTBmKXSXYwc9GcevXQJUamRFjMw30=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="https://miniluz.github.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://miniluz.github.com/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://miniluz.github.com/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://miniluz.github.com/apple-touch-icon.png">
+<link rel="mask-icon" href="https://miniluz.github.com/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.6/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.6/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.6/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ]
+    });
+  });
+</script>
+
+<meta property="og:title" content="Drawing Lines in Godot and Beyond!" />
+<meta property="og:description" content="Introduction This article&rsquo;s purpose is to explain to beginners how to do vector graphics. I&rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I&rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.
+If you feel like you&rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://miniluz.github.com/posts/screen-space-projected-lines/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-04-29T03:04:43+02:00" />
+<meta property="article:modified_time" content="2023-04-29T03:04:43+02:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Drawing Lines in Godot and Beyond!"/>
+<meta name="twitter:description" content="Introduction This article&rsquo;s purpose is to explain to beginners how to do vector graphics. I&rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I&rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.
+If you feel like you&rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject."/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Posts",
+      "item": "https://miniluz.github.com/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Drawing Lines in Godot and Beyond!",
+      "item": "https://miniluz.github.com/posts/screen-space-projected-lines/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Drawing Lines in Godot and Beyond!",
+  "name": "Drawing Lines in Godot and Beyond!",
+  "description": "Introduction This article\u0026rsquo;s purpose is to explain to beginners how to do vector graphics. I\u0026rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I\u0026rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.\nIf you feel like you\u0026rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject.",
+  "keywords": [
+    
+  ],
+  "articleBody": "Introduction This article’s purpose is to explain to beginners how to do vector graphics. I’ve covered here all I needed to know to truly understand what I was doing. So, I’ll go into detail about things that are basic to some people, but that are nonetheless necessary.\nIf you feel like you’ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject. It is much, much briefer, but it won’t cover the basic knowledge you need.\nAnd, though this article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on it.\nWhy vector graphics? I half-developed some silly games when I was a few years younger. I always got bored and eventually abandoned them. But now that I’ve started university, I’ve become friends with someone who has a lot more experience, and I’ve retroactively realized I had some Dunning-Kruger. So, I decided to work on another game.\nI’d never written a game design document before; it’s one of the things my friend insisted I do that have made everything easier. For example, when writing it out I realized one of the limitations of the game was going to be my artistic ability: there’s no way I’m making 2D animations by hand that look good. But I remembered a really neat phone game called PewPew I’d played years ago, and was inspired by its neat vector graphics. So, I decided to give those a shot! How hard could it be?\nI opened Blender and made some models using only edges, and opened them up in Godot. And I saw they were being rendered as one pixel thin lines:\nThey weren’t very visible in big resolutions, so they wouldn’t do. Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder:\nThat worked alright, except where lines met:\nIt seemed to me like a bit of a hack, and I wanted to reach a better solution. So, I contacted the creator of PewPew, and eventually landed on their Discord server. He pointed me to Matt’s article, and I started on this journey.\nMaking lines have width What is a 3D model, really? Well, it’s a bunch of arrays. The two main ones are:\nThe vertex array: an indexed list of the location of every vertex, and The index array: the body of the model. For edge models, every pair of values corresponds to the indexes of two vertices of an edge. For face models, every triplet of values corresponds to the indexes of a triangular face. $$Vertex: [A, B, C]$$ $$Index: [0,1,2]$$ When OpenGL (the API Godot uses to render) receives a model, it also receives how to interpret the index array. That’s what’s called the model’s primitive. The ship’s primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not as far as I can tell. So, as long as the model only has edges, it will be of type GL_LINES, and it will be stuck being one pixel wide.\nInstead, we’ll make a model that replaces every line with four vertices that form two faces, like so:\nIf we push out the new edges perpendicularly the line gets wide! Except. What happens when two lines meet?\nOops… Well. How do we handle this? We take inspiration from door frames.\nYeah. That style of joint is called a miter joint.\nWe create two lines around the edges and find the points where they intersect. Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points ($D$ and $E$). I made an interactive version in GeoGebra.\nHere is how you calculate $D$ and $E$:\n$$ D = B + \\vec{u} + \\vec{v}; E = B - \\vec{u} - \\vec{v} $$ $$ \\hat{u} = \\frac{A-B}{ |A-B| } $$ $$ cos(\\beta-90) = sin(\\beta) = \\frac{t}{u}$$ $$ u = \\frac{t}{sin(\\beta)} $$ $$ \\vec{u} = \\hat{u} \\cdot u $$ $$ \\vec{u} = \\frac{A-B}{ |A-B| } \\cdot \\frac{t}{sin(\\beta)} $$ $$ Similarly, \\vec{v} = \\frac{C-B}{ |C-B| } \\cdot \\frac{t}{sin(\\beta)} $$\nHowever, there’s a problem: This really only makes sense in 2D. My game is 3D.\nShaders, screen space and rendering pipelines So, to calculate the miter joints, we need to crunch down 3D space to a 2D plane. Specifically, we need to know where the vertices are in the screen. This is no easy task: since the camera can be constantly moving and rotating what the screen sees changes every frame. And that doesn’t take into account how the model moves around the world. Even if you’re familiar with linear algebra, this seems like a massive undertaking… Thankfully, it’s not one we have to do!\nTo know why, we need to get into the OpenGL rendering pipeline. After all, when the camera renders the game, it seems to project the 3D world of the game into the screen just fine. So, how does OpenGL render?\nThe most intuitive way to render a 3D scene would be approximating physics: casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they’d be, and which hit the camera. This would be wasteful, as most rays would go flying off into the sky.\nBut if you simply reverse that process, casting rays from the camera and calculating what light sources they hit, you get raytracing! It’s also relatively inefficient, though: it has only recently-ish become doable in real time for consumer computers. OpenGL was made in the 90s: it has to be doing something different.\nTriangle rasterization is turning a bunch of triangles into actual colored pixels, and it turns out it’s really efficient. And, as we saw, 3D models are just a bunch of triangles in 3D space. If we could know where those triangles would be in the 2D screen plane (that is, project them there) we could use that algorithm to turn them into pixels. And there we have it, efficient rendering!\nBut wait, how does OpenGL project vertices? It uses shaders! Ever heard of them? I found out about them because of Minecraft, where they seemed like magic that makes the game look cool. But what are they, really?\nWell, they’re programs made to run in parallel in a graphics card. For this explanation only one type matters: the vertex shader. It runs once for every vertex in a model. By default, it projects them to the screen to calculate the vertex’s position for the raster. How does it do that? Linear algebra!\nIf you’re not familiar with it, I strongly recommend checking out 3Blue1Brown’s series on it. But basically, positions are represented as vectors, which are just groups of numbers. A group or 3 numbers (3D vector) can represent 3D space by representing the $x$, $y$ and $z$ position of each number, like so:\n$$ \\begin{bmatrix} x\\\\ y\\\\ z \\end{bmatrix} $$\nA matrix, likewise, is a grid of numbers. Multiplying a matrix by a vector can be interpreted as applying a transformation to it. For instance, this 2x2 matrix rotates the vector $\\theta$ radians around the origin:\n$$ \\begin{bmatrix} x_\\theta\\\\ y_\\theta\\\\ \\end{bmatrix} = \\begin{bmatrix} \\cos\\theta \u0026 -\\sin\\theta \\\\ \\sin\\theta \u0026 \\cos\\theta \\\\ \\end{bmatrix} · \\begin{bmatrix} x\\\\ y\\\\ \\end{bmatrix} $$\nCritically, the matrix doesn’t depend on the vector, only on the angle. That means that if we had any 2D point, to rotate it around the origin you just multiply the matrix by it. That’s how OpenGL projects the vertices: the shader applies (multiplies) the appropriate transformation matrices to each vertex’s position. All done in parallel in the graphics card!\nOne final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$. That is because 3x3 matrices can only rotate and scale a 3D vector, but never translate. However, 4x4 matrices can translate a 3D vector extended with a $1$ like so: $$ \\begin{bmatrix} 1 \u0026 0 \u0026 0 \u0026 dx\\\\ 0 \u0026 1 \u0026 0 \u0026 dy\\\\ 0 \u0026 0 \u0026 1 \u0026 dz\\\\ 0 \u0026 0 \u0026 0 \u0026 1 \\end{bmatrix} · \\begin{bmatrix} x\\\\ y\\\\ z\\\\ 1 \\end{bmatrix} = \\begin{bmatrix} x+dx\\\\y+dy\\\\z+dz\\\\1 \\end{bmatrix} $$ Since these transformations keep $w$ at $1$, they can be done one after another without issue.\nAnd this finally takes us to:\nThe rendering pipeline Since vertices come in models, they’re given in the local space of the model. The model matrix translates, rotates and scales the model to put it in the game world (world space). This matrix changes as the model’s position updates.\nThe view matrix rotates the world so that the camera is at $\\begin{bmatrix} 0\u00260\u00260 \\end{bmatrix}$ facing towards $z+$. That leaves the vertices in view space, also called camera or eye space. Note that, as far as OpenGL is concerned, there is no such thing as a camera. Godot just uses its position and rotation to calculate this matrix.\nFinally, the projection matrix projects the vision field of the camera into a cube that goes from $\\begin{bmatrix} -1\u0026-1\u0026-1 \\end{bmatrix}$ to $\\begin{bmatrix} +1\u0026+1\u0026+1 \\end{bmatrix}$. This is also where the field of view is applied, since it decides what’s actually in view of the camera. This space is called clip space because, since the cube contains everything in view, everything outside it gets clipped off.\nThis transformation doesn’t keep the final coordinate, $w_{clip}$, at $1$. It stores how far away the object was from the camera in view space ($z_{view}$) in $w_{clip}$:\n$$ \\begin{bmatrix} …\u0026…\u0026…\u0026…\\\\ …\u0026…\u0026…\u0026…\\\\ …\u0026…\u0026…\u0026…\\\\ 0 \u0026 0 \u0026 1 \u0026 0 \\end{bmatrix} · \\begin{bmatrix} x_{view}\\\\ y_{view}\\\\ z_{view}\\\\ 1 \\end{bmatrix} = \\begin{bmatrix} x_{clip}\\\\ y_{clip}\\\\ z_{clip}\\\\ w_{clip} = z_{view} \\end{bmatrix} $$\nClip space is where the shader ends, but not the pipeline. When transforming to screen-space, OpenGL takes over. To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by the depth: $w_{clip}=z_{view}$. That creates a vanishing point right at the center of the camera. After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution. That makes the vertex’s $x$ and $y$ perfectly correspond to the appropiate pixel’s location. Finally, the triangle rasterization algorithm can take over and render the scene.\nI recommend you look at the diagram again and take it in. After that, we can finally take a look at what a shader does by default:\n1void vertex() { 2\tPOSITION = PROJECTION_MATRIX * MODEL_MATRIX * VIEW_MATRIX * vec4(VERTEX, 1)); 3} Writing your own shader just means modifying what code runs before OpenGL transforms to screen space. So, we’ll make our shader take things to the screen plane, calculate $\\vec{u}+\\vec{v}$ to reach $D$ and $E$, and then return that as the position.\n1void vertex() { 2\tvec4 vect = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1); 3\t// Note that MODELVIEW_MATRIX is just MODEL_MATRIX * VIEW_MATRIX 4 5\t// ... transform from clip space to screen space 6 7\tvec4 offset = u + v; 8 9\t// ... transform back to clip space 10 11\tPOSITION = offset + vect; 12} Implementing it in Godot The import script First, we actually need to change the mesh, turning each line into two faces. Except we turn it into four faces, because $D$ and $E$ swap over when the angle crosses 180º and that leaves a B shape.\nHow you do that will depend a lot on the engine you’re using. In others, maybe you could do this in a Blender export script. However, you need to make sure you can pass the next and previous vertex’s positions as arguments to the shader. In Godot, the only way to pass in extra arguments is through using the custom vec4s. And I didn’t find a way to set up custom0 and custom1 from outside. So, I made an import script that modifies the mesh, populates the customs, and saves the modified mesh for later use! The structure should look something like this:\n1func process_mesh(node: MeshInstance3D): 2 for vertex in mesh: 3 prev = previous_vertex 4 next = next_vertex 5 6 new_vertices += [vertex, vertex] 7 new_custom0 += [(next, +1), (next, -1)] 8 new_custom1 += [(prev, +1), (prev, -1)] 9 # Storing the +1 and -1 here will allow us 10 # to make one u+v (D) and the other -u-v (E) in the shader 11 12 for edge in mesh: 13 new_faces += get_faces(edge) 14 15 new_mesh = generate_mesh(new_vertices, new_custom0, ...) 16 17 save(new_mesh) There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one. This can go wrong. For example, if three edges meet in one vertex it can look very bad:\nI’ve decided to handle these cases like so:\n1func process_mesh(node: MeshInstance3D): 2 for vertex in mesh: 3 if len(neighbors) == 1: 4 prev = neighbors[0] 5 next = vertex + (vertex - prev) 6 # p -- v -- n, done to keep the end straight. 7 8 elif len(neighbors) == 2: 9 prev = neighbors[0] 10 next = neighbors[1] 11 12 elif len(neighbors) == 3: 13 neighbors.sort_by_distance() # arbitrary, just looks nice in my use case. 14 next = neighbors[0] 15 prev = neighbors[1] 16 # neighbors[2] will be handled later 17 18 else: 19 continue # vertices with other ammounts of neighbors will not be processed 20 21 new_vertices += [vertex, vertex] 22 new_custom0 += [(next, +1), (next, -1)] 23 new_custom1 += [(prev, +1), (prev, -1)] 24 25 if len(neighbors) == 3: 26 extra = neighbors[2] 27 edge = get_edge(vertex, extra) 28 29 new_vertices += [vertex, vertex] # Create new vertex 30 new_custom0 += [(next, +1), (next, -1)] 31 new_custom1 += [(prev, +1), (prev, -1)] 32 33 edge = (new_vertex, edge[1]) # Preserve the other end of the edge 34 # This is needed in case two ends of an edge are both extras. 35 36 for edge in mesh: 37 new_faces += get_faces(edge) 38 39 new_mesh = generate_mesh(new_vertices, new_custom0, ..) 40 41 save(new_mesh) You can see the actual source code here.\nThe shader As said, the miter joints need to be done in screen space. So, the shader applies perspective and scales with the resolution before calculating the offset for $D$ and $E$, then undoes it after.\n1shader_type spatial; 2render_mode cull_disabled; 3 4uniform float thickness; 5 6void vertex() { 7\tvec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1)); 8\t9\tif (CUSTOM0.w * CUSTOM0.w \u003c 0.1) { 10\t/* This runs if CUSTOM0 is not set. 11\tIt's done so you can see what the model looks like in the editor if it's not been processed */ 12\t13\tPOSITION = vect; 14\t15\t} 16\t17\tvec4 next = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM0.xyz, 1)); 18\tvec4 prev = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM1.xyz, 1)); 19\t20\tvec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.); 21\tvec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.); 22\t23\tvec2 A = prev.xy * scaling / prev.w; 24\tvec2 B = vect.xy * scaling / vect.w; 25\tvec2 C = next.xy * scaling / next.w; 26\t27\tvec2 AB = normalize(A-B); 28\tvec2 CB = normalize(C-B); 29\tfloat cosb = dot(AB, CB); 30\tvec2 offset; 31\t32\tif (cosb * cosb \u003e 0.99) { // If AB and CB are parallel 33\t// Done so you don't take the inverse square root of 0. 34\toffset = vec2(-AB.y, AB.x) * CUSTOM0.w; 35\t} 36\telse { 37\t38\tfloat isinb = inversesqrt(1. - cosb * cosb); 39\t40\t// CUSTOM0.w is +1 or -1 to reach either D or E 41\tvec2 u = AB * CUSTOM0.w * isinb; 42\tvec2 v = CB * CUSTOM0.w * isinb; 43\t44\toffset = u + v; // Offset to reach D and E 45\t46\t} 47\t48\tPOSITION = vect + vec4(offset * inv_scaling * thickness,0,0); 49\t50} no-limit.gdshader\nAnd now, with the miter joint, things should just look amazing!\nWoah! That… What? Why does it do that?\n… Well. You can see if you play around in GeoGebra that when the angle gets sharp the joint gets really long… In fact, as the angle becomes 0º the length goes up to infinity. So, an easy solution might be to add a limit to the distance the joint can have from its original point.\n45float excess = length(offset) - limit; 46 47if (excess \u003e 0.) { 48\toffset = normalize(offset) * limit; 49} normal-limit.gdshader\n…Huh. Ok, now it doesn’t go to infinity anymore. But now the lines get thinner…\nOf course, that makes sense. The length of the joint needed to go up to infinity to preserve the width. So, if we cap it, it loses width…\nExcept. I have an idea! There are actually two other points where the lines cross when making miter joints! As $D$ and $E$ stretch towards infinity, these other points come closer:\nSo what if we just, after a certain threshold, just stop using $D$ and $E$ and start using $F$ and $G$? Let’s call that a switcheroo limit:\n45float excess = length(offset) - limit; 46 47if (excess \u003e 0.) { 48\toffset = u - v; // Switch to F and G 49} switcheroo.gdshader\nWelp, now the edge is gone… Which makes sense, of course. But it looks weird that the edge suddenly disappears. And I can’t think of a way to transition smoothly using only those two vertices. Is there a way we can preserve the sharp pointy edge and thickness at the same time?\nLuz joints! Yes! Since we want the thickness to be preserved, we can do a switcheroo. But we also want the pointiness not to grow to infinity. So, we add another vertex and another face!\n$L$ normally stays still. But when the lenght starts growing up to infinity, we first do a switcheroo to $F$ and $G$, and then put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:\n1func process_mesh(node: MeshInstance3D): 2 for vertex in mesh: 3 # ... neighbor logic 4 5 prev = previous_vertex 6 next = next_vertex 7 8 new_vertices += [vertex, vertex] 9 new_custom0 += [(next, +1), (next, -1)] 10 new_custom1 += [(prev, +1), (prev, -1)] 11 12 # Luz joint! (L vertex) 13 new_vertices += [vertex, vertex] 14 new_custom0 += [(next, +1), (next, -1)] 15 new_custom1 += [(prev, -1), (prev, +1)] 16 # Having different sign accross the customs will allow us to detect them in the shader 17 18 # ... 3 neighbor logic 19 20 for edge in mesh: 21 new_faces += get_faces(edge) 22 23 new_mesh = generate_mesh(new_vertices, new_custom0, ...) 24 25 save(new_mesh) luz-joint-import-script.gd\n1shader_type spatial; 2render_mode cull_disabled; 3 4uniform float thickness; 5uniform float limit; 6 7 8void vertex() { 9\tvec4 vect = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(VERTEX, 1)); 10\t11\tvec4 next = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM0.xyz, 1)); 12\tvec4 prev = PROJECTION_MATRIX * (MODELVIEW_MATRIX * vec4(CUSTOM1.xyz, 1)); 13\t14\tvec2 scaling = vec2(VIEWPORT_SIZE.x/VIEWPORT_SIZE.y, 1.); 15\tvec2 inv_scaling = vec2(VIEWPORT_SIZE.y/VIEWPORT_SIZE.x, 1.); 16\t17\tvec2 A = prev.xy * scaling / prev.w; 18\tvec2 B = vect.xy * scaling / vect.w; 19\tvec2 C = next.xy * scaling / next.w; 20\t21\tvec2 AB = normalize(A-B); 22\tvec2 CB = normalize(C-B); 23\tfloat cosb = dot(AB, CB); 24\tvec2 offset; 25\t26\tif (cosb * cosb \u003e 0.999999) { // If AB and CB are parallel 27\tif (CUSTOM0.w == CUSTOM1.w) { // Normal vertex 28\toffset = vec2(-AB.y, AB.x) * CUSTOM0.w; 29\t} 30\telse { // L vertex 31\toffset = AB * CUSTOM0.w * limit; // Push it out by max length 32\t} 33\t} 34\telse { 35\t36\tfloat isinb = inversesqrt(1. - cosb * cosb); 37\t38\tvec2 u = AB * CUSTOM0.w * isinb; 39\tvec2 v = CB * CUSTOM1.w * isinb; 40\t41\tif (CUSTOM0.w == CUSTOM1.w) { // Normal vertex 42\tif (cosb \u003e 0.) { 43\toffset = u - v; // Use F and G 44\t} else { 45\toffset = u + v; // Use D and E 46\t} 47\t} else { // L vertex 48\tif (cosb \u003e 0.) { 49\toffset = u - v; // Use L 50\t} else { 51\toffset = vec2(0., 0.); // Don't use L 52\t} 53\t54\tfloat excess = length(offset) - limit; 55\t56\tif (excess \u003e 0.) { 57\toffset = normalize(offset) * limit; 58\t} 59\t60\t} 61\t62\t} 63\t64\tPOSITION = vect + vec4(offset * inv_scaling * thickness,0,0); 65\t66\tif (CUSTOM0.w * CUSTOM0.w \u003c 0.1) { 67\t68\tPOSITION = vect; 69\t70\t} 71} luz-joint.gdshader\nThere we go! The width and edge are both preserved! And now, for a final show, let’s see what it looks like on the ship I’ve made:\nEndnote So. Been a wild journey, ey? When I started making this, I didn’t know anything about OpenGL, shaders, Blender or Godot. I expected this shader to be an easy, short project. Then I thought it was way beyond my skill or knowledge to make.\nIf nothing else, I hope this shows that if you put your mind to it, and search for experienced people to help you, you might just go beyond what you think you’re capable of.\nIt was a long journey, and now it’s over. It was hard, but that’s why I get to be a little more proud of myself, and to write a hopefully nice article about it.\n",
+  "wordCount" : "3606",
+  "inLanguage": "en",
+  "datePublished": "2023-04-29T03:04:43+02:00",
+  "dateModified": "2023-04-29T03:04:43+02:00",
+  "author":{
+    "@type": "Person",
+    "name": "miniluz"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://miniluz.github.com/posts/screen-space-projected-lines/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "miniluz",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://miniluz.github.com/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://miniluz.github.com" accesskey="h" title="miniluz (Alt + H)">miniluz</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Drawing Lines in Godot and Beyond!<sup><span class="entry-isdraft">&nbsp;&nbsp;[draft]</span></sup>
+    </h1>
+    <div class="post-meta"><span title='2023-04-29 03:04:43 +0200 CEST'>April 29, 2023</span>&nbsp;·&nbsp;17 min&nbsp;·&nbsp;miniluz
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#introduction" aria-label="Introduction">Introduction</a></li>
+                <li>
+                    <a href="#why-vector-graphics" aria-label="Why vector graphics?">Why vector graphics?</a></li>
+                <li>
+                    <a href="#making-lines-have-width" aria-label="Making lines have width">Making lines have width</a></li>
+                <li>
+                    <a href="#shaders-screen-space-and-rendering-pipelines" aria-label="Shaders, screen space and rendering pipelines">Shaders, screen space and rendering pipelines</a><ul>
+                        
+                <li>
+                    <a href="#but-wait-how-does-opengl-project-vertices" aria-label="But wait, how does OpenGL project vertices?">But wait, how does OpenGL project vertices?</a></li>
+                <li>
+                    <a href="#the-rendering-pipeline" aria-label="The rendering pipeline">The rendering pipeline</a></li></ul>
+                </li>
+                <li>
+                    <a href="#implementing-it-in-godot" aria-label="Implementing it in Godot">Implementing it in Godot</a><ul>
+                        
+                <li>
+                    <a href="#the-import-script" aria-label="The import script">The import script</a></li>
+                <li>
+                    <a href="#the-shader" aria-label="The shader">The shader</a></li></ul>
+                </li>
+                <li>
+                    <a href="#luz-joints" aria-label="Luz joints!">Luz joints!</a></li>
+                <li>
+                    <a href="#endnote" aria-label="Endnote">Endnote</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h2>
+<p>This article&rsquo;s purpose is to explain to beginners how to do vector graphics.
+I&rsquo;ve covered here all I needed to know to truly understand what I was doing.
+So, I&rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.</p>
+<p>If you feel like you&rsquo;ve got your bases covered, you might want to check out <a href="https://mattdesl.svbtle.com/drawing-lines-is-hard">Drawing Lines is Hard</a> by <a href="https://twitter.com/mattdesl">Matt DesLauriers</a>.
+It was the first article I found on the subject.
+It is much, much briefer, but it won&rsquo;t cover the basic knowledge you need.</p>
+<p>And, though this article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on it.</p>
+<h2 id="why-vector-graphics">Why vector graphics?<a hidden class="anchor" aria-hidden="true" href="#why-vector-graphics">#</a></h2>
+<p>I half-developed some silly games when I was a few years younger.
+I always got bored and eventually abandoned them.
+But now that I&rsquo;ve started university, I&rsquo;ve become friends with someone who has a lot more experience, and I&rsquo;ve retroactively realized I had some Dunning-Kruger.
+So, I decided to work on another game.</p>
+<p>I&rsquo;d never written a <a href="https://gamedevbeginner.com/how-to-write-a-game-design-document-with-examples/">game design document</a> before; it&rsquo;s one of the things my friend insisted I do that have made everything easier.
+For example, when writing it out I realized one of the limitations of the game was going to be my artistic ability:
+there&rsquo;s no way I&rsquo;m making 2D animations by hand that look good.
+But I remembered a really neat phone game called <a href="https://pewpew.live">PewPew</a> I&rsquo;d played years ago, and was inspired by its neat vector graphics.
+So, I decided to give those a shot!
+How hard could it be?</p>
+<p>I opened <a href="https://www.blender.org/">Blender</a> and made some models using only edges, and opened them up in Godot.
+And I saw they were being rendered as one pixel thin lines:</p>
+<figure>
+    <img loading="lazy" src="/sspl/godot-pixel-thick.png" width="500vp"/> 
+</figure>
+
+<p>They weren&rsquo;t very visible in big resolutions, so they wouldn&rsquo;t do.
+Initially, I converted my model into a curve to add a bevel. That replaced every edge with a cylinder:</p>
+<figure>
+    <img loading="lazy" src="/sspl/blender-bevel.png"/> 
+</figure>
+
+<p>That worked alright, except where lines met:</p>
+<figure>
+    <img loading="lazy" src="/sspl/blender-edge.png" width="500vp"/> 
+</figure>
+
+<p>It seemed to me like a bit of a hack, and I wanted to reach a better solution.
+So, I contacted the creator of PewPew, and eventually landed on their Discord server.
+He pointed me to Matt&rsquo;s article, and I started on this journey.</p>
+<h2 id="making-lines-have-width">Making lines have width<a hidden class="anchor" aria-hidden="true" href="#making-lines-have-width">#</a></h2>
+<p>What is a 3D model, really?
+Well, it&rsquo;s a bunch of arrays. The two main ones are:</p>
+<ol>
+<li>The vertex array:
+an indexed list of the location of every vertex, and</li>
+<li>The index array:
+the body of the model.
+For edge models, every pair of values corresponds to the indexes of two vertices of an edge.
+For face models, every triplet of values corresponds to the indexes of a triangular face.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">$$Vertex: [A, B, C]$$ $$Index: [0,1,2]$$</td>
+<td style="text-align:center"><figure class="svg">
+    <img loading="lazy" src="/sspl/model-arrays.svg" width="250"/> 
+</figure>
+</td>
+</tr>
+</tbody>
+</table>
+<p>When OpenGL (the API Godot uses to render) receives a model, it also receives how to interpret the index array.
+That&rsquo;s what&rsquo;s called the model&rsquo;s <a href="https://www.khronos.org/opengl/wiki/Primitive">primitive</a>.
+The ship&rsquo;s primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not
+as far as I can tell.
+So, as long as the model only has edges, it will be of type GL_LINES, and it will be stuck being one pixel wide.</p>
+<p>Instead, we&rsquo;ll make a model that replaces every line with four vertices that form two faces, like so:</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/line-to-faces.svg" width="200vp"/> 
+</figure>
+
+<p>If we push out the new edges perpendicularly the line gets wide!
+Except. What happens when two lines meet?</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/non-miter-joint.svg" width="250vp"/> 
+</figure>
+
+<p>Oops&hellip;
+Well. How do we handle this?
+We take inspiration from door frames.</p>
+<figure>
+    <img loading="lazy" src="/sspl/door_frame.jpg" width="200vp"/> 
+</figure>
+
+<p>Yeah. That style of joint is called a <a href="https://en.wikipedia.org/wiki/Miter_joint">miter joint</a>.</p>
+<p><figure class="svg">
+    <img loading="lazy" src="/sspl/miter-joint.svg" width="500vp"/> 
+</figure>
+
+We create two lines around the edges and find the points where they intersect.
+Instead of pushing the vertices out perpendicularly, we simly move them to those intersection points ($D$ and $E$).
+I made an <a href="https://www.geogebra.org/calculator/rhsczxkf">interactive version</a> in GeoGebra.</p>
+<p>Here is how you calculate $D$ and $E$:</p>
+<p><figure class="svg">
+    <img loading="lazy" src="/sspl/miter-joint-proof.svg" width="500vp"/> 
+</figure>
+
+$$ D = B + \vec{u} + \vec{v}; E = B - \vec{u} - \vec{v} $$
+$$ \hat{u} = \frac{A-B}{ |A-B| } $$
+$$ cos(\beta-90) = sin(\beta) = \frac{t}{u}$$
+$$ u = \frac{t}{sin(\beta)} $$
+$$ \vec{u} = \hat{u} \cdot u $$
+$$ \vec{u} = \frac{A-B}{ |A-B| } \cdot \frac{t}{sin(\beta)} $$
+$$ Similarly, \vec{v} = \frac{C-B}{ |C-B| } \cdot \frac{t}{sin(\beta)} $$</p>
+<p>However, there&rsquo;s a problem: This really only makes sense in 2D. My game is 3D.</p>
+<h2 id="shaders-screen-space-and-rendering-pipelines">Shaders, screen space and rendering pipelines<a hidden class="anchor" aria-hidden="true" href="#shaders-screen-space-and-rendering-pipelines">#</a></h2>
+<p>So, to calculate the miter joints, we need to crunch down 3D space to a 2D plane.
+Specifically, we need to know where the vertices are in the screen.
+This is no easy task:
+since the camera can be constantly moving and rotating what the screen sees changes every frame.
+And that doesn&rsquo;t take into account how the model moves around the world.
+Even if you&rsquo;re familiar with linear algebra, this seems like a massive undertaking&hellip;
+Thankfully, it&rsquo;s not one we have to do!</p>
+<p>To know why, we need to get into the OpenGL rendering pipeline.
+After all, when the camera renders the game, it seems to project the 3D world of the game into the screen just fine.
+So, how does OpenGL render?</p>
+<p>The most intuitive way to render a 3D scene would be approximating physics:
+casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they&rsquo;d be, and which hit the camera.
+This would be wasteful, as most rays would go flying off into the sky.</p>
+<p>But if you simply reverse that process,
+casting rays from the camera and calculating what light sources they hit,
+you get raytracing!
+It&rsquo;s also relatively inefficient, though:
+it has only recently-ish become doable in real time for consumer computers.
+OpenGL was made in the 90s:
+it has to be doing something different.</p>
+<p><figure>
+    <img loading="lazy" src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Top-left_triangle_rasterization_rule.gif" width="500vp"/> 
+</figure>
+
+<a href="https://en.wikipedia.org/wiki/Rasterisation#Triangle_rasterization">Triangle rasterization</a>
+is turning a bunch of triangles into actual colored pixels,
+and it turns out it&rsquo;s <em>really</em> efficient.
+And, as we saw, 3D models are just a bunch of triangles in 3D space.
+If we could know where those triangles would be in the 2D screen plane
+(that is, project them there)
+we could use that algorithm to turn them into pixels.
+And there we have it, efficient rendering!</p>
+<h3 id="but-wait-how-does-opengl-project-vertices">But wait, how does OpenGL project vertices?<a hidden class="anchor" aria-hidden="true" href="#but-wait-how-does-opengl-project-vertices">#</a></h3>
+<p>It uses shaders!
+Ever heard of them?
+I found out about them because of Minecraft, where they seemed like magic that makes the game look cool.
+But what are they, really?</p>
+<p>Well, they&rsquo;re programs made to run in parallel in a graphics card.
+For this explanation only one type matters: the vertex shader.
+It runs once for every vertex in a model.
+By default, it projects them to the screen to calculate the vertex&rsquo;s position for the raster.
+How does it do that?
+Linear algebra!</p>
+<p>If you&rsquo;re not familiar with it, I strongly recommend checking out <a href="https://www.youtube.com/watch?v=fNk_zzaMoSs&amp;list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab">3Blue1Brown&rsquo;s series</a> on it.
+But basically, positions are represented as vectors, which are just groups of numbers.
+A group or 3 numbers (3D vector) can represent 3D space by representing the $x$, $y$ and $z$ position of each number, like so:</p>
+<p>$$
+\begin{bmatrix}
+x\\
+y\\
+z
+\end{bmatrix}
+$$</p>
+<p>A matrix, likewise, is a grid of numbers.
+Multiplying a matrix by a vector can be interpreted as applying a transformation to it.
+For instance, this 2x2 matrix rotates the vector $\theta$ radians around the origin:</p>
+<p>$$
+\begin{bmatrix}
+x_\theta\\
+y_\theta\\
+\end{bmatrix}
+=
+\begin{bmatrix}
+\cos\theta &amp; -\sin\theta \\
+\sin\theta &amp;  \cos\theta \\
+\end{bmatrix}
+·
+\begin{bmatrix}
+x\\
+y\\
+\end{bmatrix}
+$$</p>
+<p>Critically, the matrix doesn&rsquo;t depend on the vector, only on the angle.
+That means that if we had any 2D point, to rotate it around the origin you just multiply the matrix by it.
+That&rsquo;s how OpenGL projects the vertices:
+the shader applies (multiplies) the appropriate transformation matrices to each vertex&rsquo;s position.
+All done in parallel in the graphics card!</p>
+<p>One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
+That is because 3x3 matrices can only rotate and scale a 3D vector, but never translate.
+However, 4x4 matrices <em>can</em> translate a 3D vector extended with a $1$ like so:
+$$
+\begin{bmatrix}
+1 &amp; 0 &amp; 0 &amp; dx\\
+0 &amp; 1 &amp; 0 &amp; dy\\
+0 &amp; 0 &amp; 1 &amp; dz\\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{bmatrix}
+·
+\begin{bmatrix}
+x\\
+y\\
+z\\
+1
+\end{bmatrix}
+=
+\begin{bmatrix}
+x+dx\\y+dy\\z+dz\\1
+\end{bmatrix}
+$$
+Since these transformations keep $w$ at $1$, they can be done one after another without issue.</p>
+<p>And this finally takes us to:</p>
+<h3 id="the-rendering-pipeline">The rendering pipeline<a hidden class="anchor" aria-hidden="true" href="#the-rendering-pipeline">#</a></h3>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/rendering-pipeline.svg" width="100%"/> 
+</figure>
+
+<p>Since vertices come in models, they&rsquo;re given in the local space of the model.
+The model matrix translates, rotates and scales the model to put it in the game world (world space).
+This matrix changes as the model&rsquo;s position updates.</p>
+<p>The view matrix rotates the world so that the camera is at
+$\begin{bmatrix} 0&amp;0&amp;0 \end{bmatrix}$ facing towards $z+$.
+That leaves the vertices in view space, also called camera or eye space.
+Note that, as far as OpenGL is concerned, there is no such thing as a camera.
+Godot just uses its position and rotation to calculate this matrix.</p>
+<p>Finally, the projection matrix projects the vision field of the camera into a cube that goes from
+$\begin{bmatrix} -1&amp;-1&amp;-1 \end{bmatrix}$
+to
+$\begin{bmatrix} +1&amp;+1&amp;+1 \end{bmatrix}$.
+This is also where the field of view is applied, since it decides what&rsquo;s actually in view of the camera.
+This space is called clip space because,
+since the cube contains everything in view,
+everything outside it gets clipped off.</p>
+<p>This transformation doesn&rsquo;t keep the final coordinate, $w_{clip}$, at $1$.
+It stores how far away the object was from the camera in view space ($z_{view}$) in $w_{clip}$:</p>
+<p>$$
+\begin{bmatrix}
+&hellip;&amp;&hellip;&amp;&hellip;&amp;&hellip;\\
+&hellip;&amp;&hellip;&amp;&hellip;&amp;&hellip;\\
+&hellip;&amp;&hellip;&amp;&hellip;&amp;&hellip;\\
+0 &amp; 0 &amp; 1 &amp; 0
+\end{bmatrix}
+·
+\begin{bmatrix}
+x_{view}\\
+y_{view}\\
+z_{view}\\
+1
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_{clip}\\
+y_{clip}\\
+z_{clip}\\
+w_{clip} = z_{view}
+\end{bmatrix}
+$$</p>
+<p>Clip space is where the shader ends, but not the pipeline.
+When transforming to screen-space, OpenGL takes over.
+To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by the depth: $w_{clip}=z_{view}$.
+That creates a <a href="https://en.wikipedia.org/wiki/Vanishing_point">vanishing point</a> right at the center of the camera.
+After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution.
+That makes the vertex&rsquo;s $x$ and $y$ perfectly correspond to the appropiate pixel&rsquo;s location.
+Finally, the triangle rasterization algorithm can take over and render the scene.</p>
+<p>I recommend you <a href="http://localhost:1313/posts/screen-space-projected-lines/#the-rendering-pipeline">look at the diagram again</a> and take it in. After that, we can finally take a look at what a shader does by default:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1</span><span><span style="color:#66d9ef">void</span> vertex() {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2</span><span>	POSITION <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> MODEL_MATRIX <span style="color:#f92672">*</span> VIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(VERTEX, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3</span><span>}</span></span></code></pre></div>
+<p>Writing your own shader just means modifying what code runs before OpenGL transforms to screen space.
+So, we&rsquo;ll make our shader take things to the screen plane, calculate $\vec{u}+\vec{v}$ to reach $D$ and $E$, and then return that as the position.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">void</span> vertex() {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>	<span style="color:#66d9ef">vec4</span> vect <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(VERTEX, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>	<span style="color:#75715e">// Note that MODELVIEW_MATRIX is just MODEL_MATRIX * VIEW_MATRIX</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>	<span style="color:#75715e">// ... transform from clip space to screen space</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>	<span style="color:#66d9ef">vec4</span> offset <span style="color:#f92672">=</span> u <span style="color:#f92672">+</span> v;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#75715e">// ... transform back to clip space</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	POSITION <span style="color:#f92672">=</span> offset <span style="color:#f92672">+</span> vect;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>}</span></span></code></pre></div>
+<h2 id="implementing-it-in-godot">Implementing it in Godot<a hidden class="anchor" aria-hidden="true" href="#implementing-it-in-godot">#</a></h2>
+<h3 id="the-import-script">The import script<a hidden class="anchor" aria-hidden="true" href="#the-import-script">#</a></h3>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/line-to-faces-real.svg" width="200vp"/> 
+</figure>
+
+<p>First, we actually need to change the mesh, turning each line into two faces.
+Except we turn it into four faces, because $D$ and $E$ swap over when the angle crosses 180º and that leaves a B shape.</p>
+<p>How you do that will depend a lot on the engine you&rsquo;re using.
+In others, maybe you could do this in a Blender export script.
+However, you need to make sure you can pass the next and previous vertex&rsquo;s positions as arguments to the shader.
+In Godot, the only way to pass in extra arguments is through using the
+<a href="https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins">custom vec4s</a>.
+And I didn&rsquo;t find a way to set up custom0 and custom1 from outside.
+So, I made an <a href="https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script">import script</a>
+that modifies the mesh, populates the customs, and saves the modified mesh for later use!
+The structure should look something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gd" data-lang="gd"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">func</span> process_mesh(node: MeshInstance3D):
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>  <span style="color:#66d9ef">for</span> vertex <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>    prev <span style="color:#f92672">=</span> previous_vertex
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>    next <span style="color:#f92672">=</span> next_vertex
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>    
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>    new_vertices <span style="color:#f92672">+=</span> [vertex, vertex]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>    new_custom0  <span style="color:#f92672">+=</span> [(next, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (next, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>    new_custom1  <span style="color:#f92672">+=</span> [(prev, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (prev, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>    <span style="color:#75715e"># Storing the +1 and -1 here will allow us</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>    <span style="color:#75715e"># to make one u+v (D) and the other -u-v (E) in the shader</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>  <span style="color:#66d9ef">for</span> edge <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>    new_faces <span style="color:#f92672">+=</span> get_faces(edge)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>  new_mesh <span style="color:#f92672">=</span> generate_mesh(new_vertices, new_custom0, <span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>  save(new_mesh)</span></span></code></pre></div>
+<p>There is some nuance here as this assumes that every vertex has exactly two neighbors: a previous one and a next one.
+This can go wrong. For example, if three edges meet in one vertex it can look very bad:</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/miter-joint-three.svg" width="500vp"/> 
+</figure>
+
+<p>I&rsquo;ve decided to handle these cases like so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gd" data-lang="gd"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">func</span> process_mesh(node: MeshInstance3D):
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>  <span style="color:#66d9ef">for</span> vertex <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>    <span style="color:#66d9ef">if</span> len(neighbors) <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>      prev <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">0</span>] 
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>      next <span style="color:#f92672">=</span> vertex <span style="color:#f92672">+</span> (vertex <span style="color:#f92672">-</span> prev)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>      <span style="color:#75715e"># p -- v -- n, done to keep the end straight.</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>    
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>    <span style="color:#66d9ef">elif</span> len(neighbors) <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>      prev <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>      next <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>    <span style="color:#66d9ef">elif</span> len(neighbors) <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>      neighbors<span style="color:#f92672">.</span>sort_by_distance() <span style="color:#75715e"># arbitrary, just looks nice in my use case.</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>      next <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>      prev <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>      <span style="color:#75715e"># neighbors[2] will be handled later</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>      <span style="color:#66d9ef">continue</span> <span style="color:#75715e"># vertices with other ammounts of neighbors will not be processed</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>    
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>    new_vertices <span style="color:#f92672">+=</span> [vertex, vertex]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>    new_custom0  <span style="color:#f92672">+=</span> [(next, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (next, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>    new_custom1  <span style="color:#f92672">+=</span> [(prev, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (prev, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>    <span style="color:#66d9ef">if</span> len(neighbors) <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>      extra <span style="color:#f92672">=</span> neighbors[<span style="color:#ae81ff">2</span>]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>      edge <span style="color:#f92672">=</span> get_edge(vertex, extra)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29</span><span>      new_vertices <span style="color:#f92672">+=</span> [vertex, vertex] <span style="color:#75715e"># Create new vertex</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30</span><span>      new_custom0  <span style="color:#f92672">+=</span> [(next, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (next, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31</span><span>      new_custom1  <span style="color:#f92672">+=</span> [(prev, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (prev, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33</span><span>      edge <span style="color:#f92672">=</span> (new_vertex, edge[<span style="color:#ae81ff">1</span>]) <span style="color:#75715e"># Preserve the other end of the edge</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34</span><span>      <span style="color:#75715e"># This is needed in case two ends of an edge are both extras.</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36</span><span>  <span style="color:#66d9ef">for</span> edge <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37</span><span>    new_faces <span style="color:#f92672">+=</span> get_faces(edge)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39</span><span>  new_mesh <span style="color:#f92672">=</span> generate_mesh(new_vertices, new_custom0, <span style="color:#f92672">..</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41</span><span>  save(new_mesh)</span></span></code></pre></div>
+<p>You can see the actual source code <a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/miter-joint-import-script.gd">here</a>.</p>
+<h3 id="the-shader">The shader<a hidden class="anchor" aria-hidden="true" href="#the-shader">#</a></h3>
+<p>As said, the miter joints need to be done in screen space.
+So, the shader applies perspective and scales with the resolution before calculating the offset for $D$ and $E$,
+then undoes it after.</p>
+<p><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span>shader_type spatial;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>render_mode cull_disabled;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#66d9ef">uniform</span> <span style="color:#66d9ef">float</span> thickness;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span><span style="color:#66d9ef">void</span> vertex() {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>	<span style="color:#66d9ef">vec4</span> vect <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(VERTEX, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#66d9ef">if</span> (CUSTOM0.w <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.1</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>		<span style="color:#75715e">/* This runs if CUSTOM0 is not set.
+</span></span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span><span style="color:#75715e">		It&#39;s done so you can see what the model looks like in the editor if it&#39;s not been processed */</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>		POSITION <span style="color:#f92672">=</span> vect;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>	<span style="color:#66d9ef">vec4</span> next <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(CUSTOM0.xyz, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#66d9ef">vec4</span> prev <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(CUSTOM1.xyz, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>	<span style="color:#66d9ef">vec2</span> scaling <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(VIEWPORT_SIZE.x<span style="color:#f92672">/</span>VIEWPORT_SIZE.y, <span style="color:#ae81ff">1.</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>	<span style="color:#66d9ef">vec2</span> inv_scaling <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(VIEWPORT_SIZE.y<span style="color:#f92672">/</span>VIEWPORT_SIZE.x, <span style="color:#ae81ff">1.</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>	<span style="color:#66d9ef">vec2</span> A <span style="color:#f92672">=</span> prev.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> prev.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>	<span style="color:#66d9ef">vec2</span> B <span style="color:#f92672">=</span> vect.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> vect.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>	<span style="color:#66d9ef">vec2</span> C <span style="color:#f92672">=</span> next.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> next.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>	<span style="color:#66d9ef">vec2</span> AB <span style="color:#f92672">=</span> normalize(A<span style="color:#f92672">-</span>B);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28</span><span>	<span style="color:#66d9ef">vec2</span> CB <span style="color:#f92672">=</span> normalize(C<span style="color:#f92672">-</span>B);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29</span><span>	<span style="color:#66d9ef">float</span> cosb <span style="color:#f92672">=</span> dot(AB, CB);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30</span><span>	<span style="color:#66d9ef">vec2</span> offset;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32</span><span>	<span style="color:#66d9ef">if</span> (cosb <span style="color:#f92672">*</span> cosb <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.99</span>) { <span style="color:#75715e">// If AB and CB are parallel</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33</span><span>		<span style="color:#75715e">// Done so you don&#39;t take the inverse square root of 0.</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34</span><span>		offset <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(<span style="color:#f92672">-</span>AB.y, AB.x) <span style="color:#f92672">*</span> CUSTOM0.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36</span><span>	<span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38</span><span>		<span style="color:#66d9ef">float</span> isinb <span style="color:#f92672">=</span> inversesqrt(<span style="color:#ae81ff">1.</span> <span style="color:#f92672">-</span> cosb <span style="color:#f92672">*</span> cosb);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40</span><span>		<span style="color:#75715e">// CUSTOM0.w is +1 or -1 to reach either D or E</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41</span><span>		<span style="color:#66d9ef">vec2</span> u <span style="color:#f92672">=</span> AB <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">*</span> isinb;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42</span><span>		<span style="color:#66d9ef">vec2</span> v <span style="color:#f92672">=</span> CB <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">*</span> isinb;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44</span><span>		offset <span style="color:#f92672">=</span> u <span style="color:#f92672">+</span> v; <span style="color:#75715e">// Offset to reach D and E</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48</span><span>	POSITION <span style="color:#f92672">=</span> vect <span style="color:#f92672">+</span> <span style="color:#66d9ef">vec4</span>(offset <span style="color:#f92672">*</span> inv_scaling <span style="color:#f92672">*</span> thickness,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50</span><span>}</span></span></code></pre></div>
+<a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/no-limit.gdshader">no-limit.gdshader</a></p>
+<p>And now, with the miter joint, things should just look amazing!</p>
+<figure>
+    <img loading="lazy" src="/sspl/gif-no-limit.gif"/> 
+</figure>
+
+<p>Woah! That&hellip; What? Why does it do that?</p>
+<p>&hellip; Well.
+You can see if you play around in <a href="https://www.geogebra.org/calculator/rhsczxkf">GeoGebra</a> that when the angle gets sharp the joint gets really long&hellip;
+In fact, as the angle becomes 0º the length goes up to infinity.
+So, an easy solution might be to add a limit to the distance the joint can have from its original point.</p>
+<p><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45</span><span><span style="color:#66d9ef">float</span> excess <span style="color:#f92672">=</span> length(offset) <span style="color:#f92672">-</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47</span><span><span style="color:#66d9ef">if</span> (excess <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48</span><span>	offset <span style="color:#f92672">=</span> normalize(offset) <span style="color:#f92672">*</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49</span><span>}</span></span></code></pre></div>
+<a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/normal-limit.gdshader">normal-limit.gdshader</a></p>
+<figure>
+    <img loading="lazy" src="/sspl/gif-low-limit.gif"/> 
+</figure>
+
+<p>&hellip;Huh. Ok, now it doesn&rsquo;t go to infinity anymore.
+But now the lines get thinner&hellip;</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/miter-joint-limited.svg" width="400vp"/> 
+</figure>
+
+<p>Of course, that makes sense. The length of the joint needed to go up to infinity to preserve the width.
+So, if we cap it, it loses width&hellip;</p>
+<p>Except. I have an idea!
+There are actually two other points where the lines cross when making miter joints!
+As $D$ and $E$ stretch towards infinity, these other points come closer:</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/miter-joint-complete.svg" width="300vp"/> 
+</figure>
+
+<p>So what if we just, after a certain threshold, just stop using $D$ and $E$ and start using $F$ and $G$?
+Let&rsquo;s call that a switcheroo limit:</p>
+<p><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45</span><span><span style="color:#66d9ef">float</span> excess <span style="color:#f92672">=</span> length(offset) <span style="color:#f92672">-</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47</span><span><span style="color:#66d9ef">if</span> (excess <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48</span><span>	offset <span style="color:#f92672">=</span> u <span style="color:#f92672">-</span> v; <span style="color:#75715e">// Switch to F and G</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49</span><span>}</span></span></code></pre></div>
+<a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/switcheroo.gdshader">switcheroo.gdshader</a></p>
+<figure>
+    <img loading="lazy" src="/sspl/gif-switch-limit.gif"/> 
+</figure>
+
+<p>Welp, now the edge is gone&hellip;
+Which makes sense, of course.
+But it looks weird that the edge suddenly disappears.
+And I can&rsquo;t think of a way to transition smoothly using only those two vertices.
+Is there a way we can preserve the sharp pointy edge and thickness at the same time?</p>
+<h2 id="luz-joints">Luz joints!<a hidden class="anchor" aria-hidden="true" href="#luz-joints">#</a></h2>
+<p>Yes!
+Since we want the thickness to be preserved, we can do a switcheroo.
+But we also want the pointiness not to grow to infinity.
+So, we add another vertex and another face!</p>
+<figure class="svg">
+    <img loading="lazy" src="/sspl/luz-joint.svg" width="300vp"/> 
+</figure>
+
+<p>$L$ normally stays still. But when the lenght starts growing up to infinity, we first do a switcheroo to $F$ and $G$, and then put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:</p>
+<p><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-gd" data-lang="gd"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span><span style="color:#66d9ef">func</span> process_mesh(node: MeshInstance3D):
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>  <span style="color:#66d9ef">for</span> vertex <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>    <span style="color:#75715e"># ... neighbor logic</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span>    prev <span style="color:#f92672">=</span> previous_vertex
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>    next <span style="color:#f92672">=</span> next_vertex
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>    
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span>    new_vertices <span style="color:#f92672">+=</span> [vertex, vertex]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>    new_custom0  <span style="color:#f92672">+=</span> [(next, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (next, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>    new_custom1  <span style="color:#f92672">+=</span> [(prev, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (prev, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>    <span style="color:#75715e"># Luz joint! (L vertex)</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>    new_vertices <span style="color:#f92672">+=</span> [vertex, vertex]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>    new_custom0  <span style="color:#f92672">+=</span> [(next, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>), (next, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>    new_custom1  <span style="color:#f92672">+=</span> [(prev, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), (prev, <span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>    <span style="color:#75715e"># Having different sign accross the customs will allow us to detect them in the shader</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>    <span style="color:#75715e"># ... 3 neighbor logic</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>  <span style="color:#66d9ef">for</span> edge <span style="color:#f92672">in</span> mesh:
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>    new_faces <span style="color:#f92672">+=</span> get_faces(edge)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>  new_mesh <span style="color:#f92672">=</span> generate_mesh(new_vertices, new_custom0, <span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>  save(new_mesh)</span></span></code></pre></div>
+<a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/code/luz-joint-import-script.gd">luz-joint-import-script.gd</a></p>
+<p><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-glsl" data-lang="glsl"><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1</span><span>shader_type spatial;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2</span><span>render_mode cull_disabled;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4</span><span><span style="color:#66d9ef">uniform</span> <span style="color:#66d9ef">float</span> thickness;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5</span><span><span style="color:#66d9ef">uniform</span> <span style="color:#66d9ef">float</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7</span><span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8</span><span><span style="color:#66d9ef">void</span> vertex() {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9</span><span>	<span style="color:#66d9ef">vec4</span> vect <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(VERTEX, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11</span><span>	<span style="color:#66d9ef">vec4</span> next <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(CUSTOM0.xyz, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12</span><span>	<span style="color:#66d9ef">vec4</span> prev <span style="color:#f92672">=</span> PROJECTION_MATRIX <span style="color:#f92672">*</span> (MODELVIEW_MATRIX <span style="color:#f92672">*</span> <span style="color:#66d9ef">vec4</span>(CUSTOM1.xyz, <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14</span><span>	<span style="color:#66d9ef">vec2</span> scaling <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(VIEWPORT_SIZE.x<span style="color:#f92672">/</span>VIEWPORT_SIZE.y, <span style="color:#ae81ff">1.</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15</span><span>	<span style="color:#66d9ef">vec2</span> inv_scaling <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(VIEWPORT_SIZE.y<span style="color:#f92672">/</span>VIEWPORT_SIZE.x, <span style="color:#ae81ff">1.</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17</span><span>	<span style="color:#66d9ef">vec2</span> A <span style="color:#f92672">=</span> prev.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> prev.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18</span><span>	<span style="color:#66d9ef">vec2</span> B <span style="color:#f92672">=</span> vect.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> vect.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19</span><span>	<span style="color:#66d9ef">vec2</span> C <span style="color:#f92672">=</span> next.xy <span style="color:#f92672">*</span> scaling <span style="color:#f92672">/</span> next.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21</span><span>	<span style="color:#66d9ef">vec2</span> AB <span style="color:#f92672">=</span> normalize(A<span style="color:#f92672">-</span>B);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22</span><span>	<span style="color:#66d9ef">vec2</span> CB <span style="color:#f92672">=</span> normalize(C<span style="color:#f92672">-</span>B);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23</span><span>	<span style="color:#66d9ef">float</span> cosb <span style="color:#f92672">=</span> dot(AB, CB);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24</span><span>	<span style="color:#66d9ef">vec2</span> offset;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26</span><span>	<span style="color:#66d9ef">if</span> (cosb <span style="color:#f92672">*</span> cosb <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.999999</span>) { <span style="color:#75715e">// If AB and CB are parallel</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27</span><span>		<span style="color:#66d9ef">if</span> (CUSTOM0.w <span style="color:#f92672">==</span> CUSTOM1.w) { <span style="color:#75715e">// Normal vertex</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28</span><span>			offset <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(<span style="color:#f92672">-</span>AB.y, AB.x) <span style="color:#f92672">*</span> CUSTOM0.w;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29</span><span>		}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30</span><span>		<span style="color:#66d9ef">else</span> { <span style="color:#75715e">// L vertex</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31</span><span>			offset <span style="color:#f92672">=</span> AB <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">*</span> limit; <span style="color:#75715e">// Push it out by max length</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32</span><span>		}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34</span><span>	<span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36</span><span>		<span style="color:#66d9ef">float</span> isinb <span style="color:#f92672">=</span> inversesqrt(<span style="color:#ae81ff">1.</span> <span style="color:#f92672">-</span> cosb <span style="color:#f92672">*</span> cosb);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38</span><span>		<span style="color:#66d9ef">vec2</span> u <span style="color:#f92672">=</span> AB <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">*</span> isinb;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39</span><span>		<span style="color:#66d9ef">vec2</span> v <span style="color:#f92672">=</span> CB <span style="color:#f92672">*</span> CUSTOM1.w <span style="color:#f92672">*</span> isinb;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41</span><span>		<span style="color:#66d9ef">if</span> (CUSTOM0.w <span style="color:#f92672">==</span> CUSTOM1.w) { <span style="color:#75715e">// Normal vertex</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42</span><span>			<span style="color:#66d9ef">if</span> (cosb <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43</span><span>				offset <span style="color:#f92672">=</span> u <span style="color:#f92672">-</span> v; <span style="color:#75715e">// Use F and G</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44</span><span>			} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45</span><span>				offset <span style="color:#f92672">=</span> u <span style="color:#f92672">+</span> v; <span style="color:#75715e">// Use D and E</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46</span><span>			}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47</span><span>		} <span style="color:#66d9ef">else</span> { <span style="color:#75715e">// L vertex</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48</span><span>			<span style="color:#66d9ef">if</span> (cosb <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49</span><span>				offset <span style="color:#f92672">=</span> u <span style="color:#f92672">-</span> v; <span style="color:#75715e">// Use L</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50</span><span>			} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51</span><span>				offset <span style="color:#f92672">=</span> <span style="color:#66d9ef">vec2</span>(<span style="color:#ae81ff">0.</span>, <span style="color:#ae81ff">0.</span>); <span style="color:#75715e">// Don&#39;t use L</span>
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52</span><span>			}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53</span><span>			
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54</span><span>			<span style="color:#66d9ef">float</span> excess <span style="color:#f92672">=</span> length(offset) <span style="color:#f92672">-</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">55</span><span>			
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">56</span><span>			<span style="color:#66d9ef">if</span> (excess <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">57</span><span>				offset <span style="color:#f92672">=</span> normalize(offset) <span style="color:#f92672">*</span> limit;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">58</span><span>			}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">59</span><span>			
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">60</span><span>		}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">61</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">62</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">63</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">64</span><span>	POSITION <span style="color:#f92672">=</span> vect <span style="color:#f92672">+</span> <span style="color:#66d9ef">vec4</span>(offset <span style="color:#f92672">*</span> inv_scaling <span style="color:#f92672">*</span> thickness,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">65</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">66</span><span>	<span style="color:#66d9ef">if</span> (CUSTOM0.w <span style="color:#f92672">*</span> CUSTOM0.w <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0.1</span>) {
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">67</span><span>		
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">68</span><span>		POSITION <span style="color:#f92672">=</span> vect;
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">69</span><span>	
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">70</span><span>	}
+</span></span><span style="display:flex;"><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">71</span><span>}</span></span></code></pre></div>
+<a href="https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/luz-joint.gdshader">luz-joint.gdshader</a></p>
+<figure>
+    <img loading="lazy" src="/sspl/gif-luz-joint.gif"/> 
+</figure>
+
+<p>There we go!
+The width and edge are both preserved!
+And now, for a final show, let&rsquo;s see what it looks like on the ship I&rsquo;ve made:</p>
+<figure>
+    <img loading="lazy" src="/sspl/gif-new-ship.gif"/> 
+</figure>
+
+<h2 id="endnote">Endnote<a hidden class="anchor" aria-hidden="true" href="#endnote">#</a></h2>
+<p>So. Been a wild journey, ey?
+When I started making this, I didn&rsquo;t know anything about OpenGL, shaders, Blender or Godot.
+I expected this shader to be an easy, short project.
+Then I thought it was way beyond my skill or knowledge to make.</p>
+<p>If nothing else, I hope this shows that if you put your mind to it,
+and search for experienced people to help you,
+you might just go beyond what you think you&rsquo;re capable of.</p>
+<p>It was a long journey, and now it&rsquo;s over.
+It was hard, but that&rsquo;s why I get to be a little more proud of myself,
+and to write a hopefully nice article about it.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2023 <a href="https://miniluz.github.com">miniluz</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a><script>
+  function set_svg_themes(inverted) {
+    const lightTheme = localStorage.getItem("pref-theme") === "light";
+    const svgs = document.getElementsByClassName("svg");
+    for (let i = 0; i < svgs.length; i++) {
+      let image = svgs.item(i);
+      if (inverted != lightTheme) {
+        image.style.webkitFilter = "";
+      } else {
+        image.style.webkitFilter = "invert(94%) sepia(6%) saturate(0%) hue-rotate(281deg) brightness(94%) contrast(90%)"; 
+      }
+    }
+  }
+
+  set_svg_themes(false);
+
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    set_svg_themes(true);
+  })
+</script>
+
+
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

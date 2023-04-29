@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>miniluz</title>
-    <link>https://miniluz.github.com/</link>
-    <description>Recent content on miniluz</description>
+    <title>Posts on miniluz</title>
+    <link>https://miniluz.github.com/posts/</link>
+    <description>Recent content in Posts on miniluz</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 29 Apr 2023 03:04:43 +0200</lastBuildDate><atom:link href="https://miniluz.github.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 29 Apr 2023 03:04:43 +0200</lastBuildDate><atom:link href="https://miniluz.github.com/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Drawing Lines in Godot and Beyond!</title>
       <link>https://miniluz.github.com/posts/screen-space-projected-lines/</link>
