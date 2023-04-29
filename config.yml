@@ -1,11 +1,11 @@
-baseURL: http://example.org/
+baseURL: https://miniluz.github.com
 languageCode: en-us
-title: My New Hugo Site
+title: miniluz
 theme: PaperMod
 
 params:
   homeInfoParams:
-    Title: Hi there wave
-    Content: Can be Info, etc.
+    Title: Welcome!
+    Content: "Check out what I've been doing lately:"
 
   ShowReadingTime: true
