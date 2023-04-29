@@ -17,7 +17,8 @@ So, I'll go into detail about things that are basic to some people, but that are
 
 If you feel like you've got your bases covered, you might want to check out [Drawing Lines is Hard](https://mattdesl.svbtle.com/drawing-lines-is-hard) by [Matt DesLauriers](https://twitter.com/mattdesl).
 It was the first article I found on the subject.
-It is much, much briefer, but it won't cover the basic knowledge you need.
+It is much, much briefer.
+You can think of this article as what you need to understand his.
 
 And, though this article is written around Godot, I hope it will provide a good foundation so that you can do this in whichever engine you want, and so that you can expand on it.
 
@@ -70,15 +71,15 @@ For face models, every triplet of values corresponds to the indexes of a triangu
 
 When OpenGL (the API Godot uses to render) receives a model, it also receives how to interpret the index array.
 That's what's called the model's [primitive](https://www.khronos.org/opengl/wiki/Primitive).
-The ship's primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not
-as far as I can tell.
+The ship's primitive is GL_LINES, and though OpenGL supports setting a width for the lines, Godot does not.
 So, as long as the model only has edges, it will be of type GL_LINES, and it will be stuck being one pixel wide.
 
-Instead, we'll make a model that replaces every line with four vertices that form two faces, like so:
+Instead, we'll make a new model that, for every edge the base model has, has two faces:
 
 {{<figure src="/sspl/line-to-faces.svg" width=200vp class="svg">}}
 
-If we push out the new edges perpendicularly the line gets wide!
+If you push the new vertices out perpendicularly to the old edge you get a rectangle.
+And that gives the line width!
 Except. What happens when two lines meet?
 
 {{<figure src="/sspl/non-miter-joint.svg" width=250vp class="svg">}}
@@ -101,7 +102,7 @@ Here is how you calculate $D$ and $E$:
 {{<figure src="/sspl/miter-joint-proof.svg" width=500vp class="svg">}}
 $$ D = B + \vec{u} + \vec{v}; E = B - \vec{u} - \vec{v} $$
 $$ \hat{u} = \frac{A-B}{ |A-B| } $$
-$$ cos(\beta-90) = sin(\beta) = \frac{t}{u}$$
+$$ cos(\beta-90º) = sin(\beta) = \frac{t}{u}$$
 $$ u = \frac{t}{sin(\beta)} $$
 $$ \vec{u} = \hat{u} \cdot u $$
 $$ \vec{u} = \frac{A-B}{ |A-B| } \cdot \frac{t}{sin(\beta)} $$
@@ -124,8 +125,8 @@ After all, when the camera renders the game, it seems to project the 3D world of
 So, how does OpenGL render?
 
 The most intuitive way to render a 3D scene would be approximating physics:
-casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they'd be, and which hit the camera.
-This would be wasteful, as most rays would go flying off into the sky.
+casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, and which hit the camera.
+This would be wasteful, as most rays would go flying off into the sky and would never hit the camera.
 
 But if you simply reverse that process,
 casting rays from the camera and calculating what light sources they hit,
@@ -159,9 +160,9 @@ By default, it projects them to the screen to calculate the vertex's position fo
 How does it do that?
 Linear algebra!
 
-If you're not familiar with it, I strongly recommend checking out [3Blue1Brown's series](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab) on it.
-But basically, positions are represented as vectors, which are just groups of numbers.
-A group or 3 numbers (3D vector) can represent 3D space by representing the $x$, $y$ and $z$ position of each number, like so:
+If you're not familiar with it, I strongly recommend checking out [3Blue1Brown's series](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
+A vector is just a group of numbers.
+It can represent a position by having those numbers be its coordinates.
 
 $$
 \begin{bmatrix}
@@ -173,7 +174,7 @@ $$
 
 A matrix, likewise, is a grid of numbers.
 Multiplying a matrix by a vector can be interpreted as applying a transformation to it.
-For instance, this 2x2 matrix rotates the vector $\theta$ radians around the origin:
+For instance, this 2x2 matrix rotates a vector $\theta$ radians around the origin:
 
 $$
   \begin{bmatrix}
@@ -192,15 +193,14 @@ $$
   \end{bmatrix}
 $$
 
-Critically, the matrix doesn't depend on the vector, only on the angle.
-That means that if we had any 2D point, to rotate it around the origin you just multiply the matrix by it.
-That's how OpenGL projects the vertices:
-the shader applies (multiplies) the appropriate transformation matrices to each vertex's position.
-All done in parallel in the graphics card!
+Critically, this matrix doesn't depend on the vector: only on the angle.
+That means that, given any 2D point, to rotate it around the origin you just multiply the matrix by it.
 
-One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
-That is because 3x3 matrices can only rotate and scale a 3D vector, but never translate.
-However, 4x4 matrices *can* translate a 3D vector extended with a $1$ like so:
+OpenGL does the same: it applies matrices to position vectors to transform them.
+It actually uses 4D vertices to represent 3D positions.
+They're extended by adding a new value ($w$) that is always $1$.
+That's because 3x3 matrices can only rotate and scale a 3D vector, but never translate.
+However, 4x4 matrices *can* translate an extended 3D vector like so:
 $$
   \begin{bmatrix}
     1 & 0 & 0 & dx\\\\
@@ -221,34 +221,30 @@ $$
   \end{bmatrix}
 $$
 Since these transformations keep $w$ at $1$, they can be done one after another without issue.
+To interpret extended vectors as a position, you simply ignore $w$.
 
+That's how OpenGL projects the vertices:
+the shader applies the appropriate matrices to each vertex's position.
+All done in parallel in the graphics card.
 And this finally takes us to:
 
 ### The rendering pipeline
 
 {{<figure src="/sspl/rendering-pipeline.svg" width=100% class="svg">}}
 
-Since vertices come in models, they're given in the local space of the model.
-The model matrix translates, rotates and scales the model to put it in the game world (world space).
+Since vertices come in models, they're given in the **local space** of the model.
+The **model matrix** translates, rotates and scales the model to put it in the game world (**world space**).
 This matrix changes as the model's position updates.
 
-The view matrix rotates the world so that the camera is at
-$\begin{bmatrix} 0&0&0 \end{bmatrix}$ facing towards $z+$.
-That leaves the vertices in view space, also called camera or eye space.
-Note that, as far as OpenGL is concerned, there is no such thing as a camera.
-Godot just uses its position and rotation to calculate this matrix.
+The **view matrix** rotates the world so that the camera is at the origin facing towards $z+$.
+That leaves the vertices in **view space**, also called camera or eye space.
 
-Finally, the projection matrix projects the vision field of the camera into a cube that goes from
-$\begin{bmatrix} -1&-1&-1 \end{bmatrix}$
-to
-$\begin{bmatrix} +1&+1&+1 \end{bmatrix}$.
+Finally, the **projection matrix** projects the vision field of the camera into a cube that goes from $[-1, -1, -1]$ to $[1, 1, 1]$.
 This is also where the field of view is applied, since it decides what's actually in view of the camera.
-This space is called clip space because,
-since the cube contains everything in view,
-everything outside it gets clipped off.
+This space is called **clip space** because, since the cube contains everything in view, everything outside it gets clipped off.
 
 This transformation doesn't keep the final coordinate, $w_{clip}$, at $1$.
-It stores how far away the object was from the camera in view space ($z_{view}$) in $w_{clip}$:
+It stores in it how far away the object was from the camera ($z_{view}$):
 
 $$
   \begin{bmatrix}
@@ -273,26 +269,31 @@ $$
   \end{bmatrix}
 $$
 
-Clip space is where the shader ends, but not the pipeline.
-When transforming to screen-space, OpenGL takes over.
+The transformation to **screen space** is done by OpenGL, so it's not controlled by the shader.
 To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by the depth: $w_{clip}=z_{view}$.
-That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
-After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution.
-That makes the vertex's $x$ and $y$ perfectly correspond to the appropiate pixel's location.
+That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the screen.
+Then, clip space is translated so that the lower left corner of the clipping cube is at the origin.
+Finally, it's scaled to the appropriate resolution.
+That makes the vertex's $x$ and $y$ perfectly correspond to its corresponding pixel's location.
 Finally, the triangle rasterization algorithm can take over and render the scene.
 
-I recommend you [look at the diagram again](http://localhost:1313/posts/screen-space-projected-lines/#the-rendering-pipeline) and take it in. After that, we can finally take a look at what a shader does by default:
+If you want to go deeper into how the matrices are actually calculated,
+I recommend [this LearnOpenGL article](https://learnopengl.com/Getting-started/Coordinate-Systems).
+
+I also recommend you [take another look at the illustration](http://localhost:1313/posts/screen-space-projected-lines/#the-rendering-pipeline)
+and take it in.
+After that, we can finally take a look at what a shader does by default:
 
 {{<highlight glsl "lineNos=inline">}}
 
 void vertex() {
-	POSITION = PROJECTION_MATRIX * MODEL_MATRIX * VIEW_MATRIX * vec4(VERTEX, 1));
+	POSITION = PROJECTION_MATRIX * MODEL_MATRIX * VIEW_MATRIX * vec4(VERTEX, 1);
 }
 
 {{</highlight>}}
 
-Writing your own shader just means modifying what code runs before OpenGL transforms to screen space.
-So, we'll make our shader take things to the screen plane, calculate $\vec{u}+\vec{v}$ to reach $D$ and $E$, and then return that as the position.
+Writing your own shader just means modifying what code gets you to clip space before OpenGL transforms to screen space.
+So, our shader will take things to screen space, calculate $\vec{u}+\vec{v}$ to reach $D$ and $E$, and then return that in clip space as the position.
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -315,10 +316,13 @@ void vertex() {
 
 ### The import script
 
-{{<figure src="/sspl/line-to-faces-real.svg" width=200vp class="svg">}}
+{{<figure src="/sspl/line-to-faces-B.svg" width=350vp class="svg">}}
 
-First, we actually need to change the mesh, turning each line into two faces.
-Except we turn it into four faces, because $D$ and $E$ swap over when the angle crosses 180º and that leaves a B shape.
+If $D$ and $E$ swap places, the shape ends up looking like a B.
+And they do swap places when the angle crosses $180º$.
+So we need make more faces, turning each edge into four:
+
+{{<figure src="/sspl/line-to-faces-real.svg" width=350vp class="svg">}}
 
 How you do that will depend a lot on the engine you're using.
 In others, maybe you could do this in a Blender export script.
@@ -393,8 +397,8 @@ func process_mesh(node: MeshInstance3D):
       new_custom0  += [(next, +1), (next, -1)]
       new_custom1  += [(prev, +1), (prev, -1)]
 
-      edge = (new_vertex, edge[1]) # Preserve the other end of the edge
-      # This is needed in case two ends of an edge are both extras.
+      edge = (new_vertex, edge[1])
+      # change the edge to go to the new vertex instead
 
   for edge in mesh:
     new_faces += get_faces(edge)
@@ -523,11 +527,11 @@ if (excess > 0.) {
 
 {{<figure src="/sspl/gif-switch-limit.gif">}}
 
-Welp, now the edge is gone...
+Well, it works. It remains just as wide, but now the edge is gone...
 Which makes sense, of course.
-But it looks weird that the edge suddenly disappears.
+But it looks weird when the edge suddenly disappears.
 And I can't think of a way to transition smoothly using only those two vertices.
-Is there a way we can preserve the sharp pointy edge and thickness at the same time?
+Is there a way we can preserve both the sharp pointy edge and the width?
 
 ## Luz joints!
 
@@ -652,21 +656,26 @@ void vertex() {
 
 There we go!
 The width and edge are both preserved!
-And now, for a final show, let's see what it looks like on the ship I've made:
+
+And now, for the grand finale, let's see what it looks like on the ship I've made!
 
 {{<figure src="/sspl/gif-new-ship.gif">}}
 
 ## Endnote
 
-So. Been a wild journey, ey?
-When I started making this, I didn't know anything about OpenGL, shaders, Blender or Godot.
-I expected this shader to be an easy, short project.
-Then I thought it was way beyond my skill or knowledge to make.
+...so. Been a wild journey, ey?
 
-If nothing else, I hope this shows that if you put your mind to it,
-and search for experienced people to help you,
-you might just go beyond what you think you're capable of.
+When I started making this, I didn't know anything about OpenGL, shaders, Blender or Godot.
+I expected this to be an easy, short project.
+But, as you've seen, it was nothing but.
+
+As I learned more, I was worried making it work might be way beyond my skill and knowledge.
+But I *did* make it work.
+If nothing else, that's what I want you to take away.
+I put my mind to it,
+and I searched for experienced people to help me.
+And I managed to go beyond what I thought I could do.
 
 It was a long journey, and now it's over.
 It was hard, but that's why I get to be a little more proud of myself,
-and to write a hopefully nice article about it.
+and to write a nice article about it.
