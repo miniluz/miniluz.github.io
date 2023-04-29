@@ -4,8 +4,31 @@ title: miniluz
 theme: PaperMod
 
 params:
-  homeInfoParams:
-    Title: Welcome!
-    Content: "Check out what I've been doing lately:"
+  profileMode:
+    enabled: true
+    title: miniluz
+    imageUrl: "pfp.png"
+    imageTitle: yay
+    # imageWidth: 120
+    # imageHeight: 120
+    subtitle: "💡✨ -- Trying my best"
+    buttons:
+        - name: Blog
+          url: posts
+
+  ShowReadingTime: true
+  # disableSpecial1stPost: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowToc: true
+
+  socialIcons:
+    - name: github
+      url: https://github.com/miniluz
+    - name: linkedin
+      url: https://www.linkedin.com/in/javier-mil%C3%A1-de-la-roca-dos-santos-b207b4162/
+    - name: reddit
+      url: https://www.reddit.com/user/miniluzz
 
   ShowReadingTime: true
