@@ -1,0 +1,14 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{tikz, standalone}
+\usetikzlibrary{nicepoints}
+\begin{document}
+\begin{tikzpicture}[scale=0.25]
+  \draw
+    (-9, -2) -- (-7, -6) -- (0, -2.5) -- (7, -6) -- (9, -2) -- (0, 2.5) -- (-9, -2);
+  \draw (0, -2.5) -- (0, 2.5);
+  \draw[thick]
+    (0, -2.5) [point="D"below] (0, 2.5) [point="E"above];
+  \draw[thick]
+    (-8,-4) [point="A"below left] -- (0,0) [point="B"above left] -- (8, -4) [point = "C"below right];
+\end{tikzpicture}
+\end{document}

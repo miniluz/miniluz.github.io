@@ -1,0 +1,16 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{tikz, standalone}
+\usetikzlibrary{nicepoints}
+\begin{document}
+\begin{tikzpicture}[scale=0.25]
+  \draw
+    (-9, -2) -- (-7, -6) -- (0, -2.5) -- (7, -6) -- (9, -2) -- (0, 2.5) -- (-9, -2);
+  \draw (0, -2.5) -- (0, 2.5);
+  \draw (0, 2.5) -- (-2.23, 10) -- (2.23, 10) -- (0, -2.5);
+  \draw[thick]
+    (0, -2.5)[point] (0, 2.5) [point];
+  \draw[thick]
+    (-8,-4) [point] -- (0,0) [point] -- (8, -4) [point]
+    (0, 10) [point] -- (0,0);
+\end{tikzpicture}
+\end{document}

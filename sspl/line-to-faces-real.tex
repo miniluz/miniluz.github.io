@@ -1,0 +1,15 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{tikz, standalone}
+\usetikzlibrary{nicepoints}
+\begin{document}
+\begin{tikzpicture}
+  \draw
+    (0,0) [point="A"above right] -- (0,2) [point="B"below right];
+  \draw
+    (1,0) -- (1,2) -- (2,2) -- (2,0) -- (1,0);
+  \draw[dashed] (1,0) -- (2,2) (2,0) -- (1, 2);
+  \draw[->] (0.2,1) -- (0.8,1);
+  \draw (1.5,0) [point="A"above];
+  \draw (1.5,2) [point="B"below];
+\end{tikzpicture}
+\end{document}
