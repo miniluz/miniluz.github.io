@@ -100,13 +100,13 @@ I made an [interactive version](https://www.geogebra.org/calculator/rhsczxkf) in
 Here is how you calculate $D$ and $E$:
 
 {{<figure src="/sspl/miter-joint-proof.svg" width=500vp class="svg">}}
-$$ D = B + \vec{u} + \vec{v}; E = B - \vec{u} - \vec{v} $$
-$$ \hat{u} = \frac{A-B}{ |A-B| } $$
 $$ cos(\beta-90º) = sin(\beta) = \frac{t}{u}$$
 $$ u = \frac{t}{sin(\beta)} $$
+$$ \hat{u} = \frac{A-B}{ |A-B| } $$
 $$ \vec{u} = \hat{u} \cdot u $$
 $$ \vec{u} = \frac{A-B}{ |A-B| } \cdot \frac{t}{sin(\beta)} $$
 $$ Similarly, \vec{v} = \frac{C-B}{ |C-B| } \cdot \frac{t}{sin(\beta)} $$
+$$ D = B + \vec{u} + \vec{v} $$
 
 However, there's a problem: This really only makes sense in 2D. My game is 3D.
 
@@ -178,18 +178,18 @@ For instance, this 2x2 matrix rotates a vector $\theta$ radians around the origi
 
 $$
   \begin{bmatrix}
-    x_\theta\\\\
-    y_\theta\\\\
-  \end{bmatrix}
-  \= 
-  \begin{bmatrix}
       \cos\theta & -\sin\theta \\\\
       \sin\theta &  \cos\theta \\\\
   \end{bmatrix}
-  ·
+  \cdot
   \begin{bmatrix}
     x\\\\
     y\\\\
+  \end{bmatrix}
+  \=
+  \begin{bmatrix}
+    x_\theta\\\\
+    y_\theta\\\\
   \end{bmatrix}
 $$
 
@@ -208,7 +208,7 @@ $$
     0 & 0 & 1 & dz\\\\
     0 & 0 & 0 & 1
   \end{bmatrix}
-  ·
+  \cdot
   \begin{bmatrix}
     x\\\\
     y\\\\
@@ -253,7 +253,7 @@ $$
     ...&...&...&...\\\\
      0 & 0 & 1 & 0
   \end{bmatrix}
-  ·
+  \cdot
   \begin{bmatrix}
     x_{view}\\\\
     y_{view}\\\\
