@@ -280,7 +280,7 @@ Finally, the triangle rasterization algorithm can take over and render the scene
 If you want to go deeper into how the matrices are actually calculated,
 I recommend [this LearnOpenGL article](https://learnopengl.com/Getting-started/Coordinate-Systems).
 
-I also recommend you [take another look at the illustration](http://localhost:1313/posts/screen-space-projected-lines/#the-rendering-pipeline)
+I also recommend you [take another look at the illustration](#the-rendering-pipeline)
 and take it in.
 After that, we can finally take a look at what a shader does by default:
 
