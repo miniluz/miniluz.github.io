@@ -663,7 +663,7 @@ And now, for the grand finale, let's see what it looks like on the ship I've mad
 
 ## Endnote
 
-...so. Been a wild journey, ey?
+...so. bit of a journey, ey?
 
 When I started making this, I didn't know anything about OpenGL, shaders, Blender or Godot.
 I expected this to be an easy, short project.
