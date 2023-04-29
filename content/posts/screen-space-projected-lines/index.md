@@ -670,12 +670,9 @@ I expected this to be an easy, short project.
 But, as you've seen, it was nothing but.
 
 As I learned more, I was worried making it work might be way beyond my skill and knowledge.
-But I *did* make it work.
-If nothing else, that's what I want you to take away.
-I put my mind to it,
-and I searched for experienced people to help me.
-And I managed to go beyond what I thought I could do.
+But by breaking down the problem,
+learning about the basics,
+and finding more knowledgeable people,
+I ended up getting it done!
 
-It was a long journey, and now it's over.
-It was hard, but that's why I get to be a little more proud of myself,
-and to write a nice article about it.
+It was hard, but that's why I get to write a nice article about it.
