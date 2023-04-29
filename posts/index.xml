@@ -1,21 +1,2 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Posts on miniluz</title>
-    <link>https://miniluz.github.io/posts/</link>
-    <description>Recent content in Posts on miniluz</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
-    <lastBuildDate>Sat, 29 Apr 2023 03:04:43 +0200</lastBuildDate><atom:link href="https://miniluz.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Drawing Lines in Godot and Beyond!</title>
-      <link>https://miniluz.github.io/posts/screen-space-projected-lines/</link>
-      <pubDate>Sat, 29 Apr 2023 03:04:43 +0200</pubDate>
-      
-      <guid>https://miniluz.github.io/posts/screen-space-projected-lines/</guid>
-      <description>Introduction This article&amp;rsquo;s purpose is to explain to beginners how to do vector graphics. I&amp;rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I&amp;rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.
-If you feel like you&amp;rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject.</description>
-    </item>
-    
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on miniluz</title><link>https://miniluz.github.io/posts/</link><description>Recent content in Posts on miniluz</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 29 Apr 2023 03:04:43 +0200</lastBuildDate><atom:link href="https://miniluz.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Drawing Lines in Godot and Beyond!</title><link>https://miniluz.github.io/posts/screen-space-projected-lines/</link><pubDate>Sat, 29 Apr 2023 03:04:43 +0200</pubDate><guid>https://miniluz.github.io/posts/screen-space-projected-lines/</guid><description>Introduction This article&amp;rsquo;s purpose is to explain to beginners how to do vector graphics. I&amp;rsquo;ve covered here all I needed to know to truly understand what I was doing. So, I&amp;rsquo;ll go into detail about things that are basic to some people, but that are nonetheless necessary.
+If you feel like you&amp;rsquo;ve got your bases covered, you might want to check out Drawing Lines is Hard by Matt DesLauriers. It was the first article I found on the subject.</description></item></channel></rss>
