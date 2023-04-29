@@ -89,7 +89,7 @@ We take inspiration from door frames.
 
 {{<figure src="/sspl/door_frame.jpg" width=200vp >}}
 
-Yeah. That style of joint is called a miter joint.
+Yeah. That style of joint is called a [miter joint](https://en.wikipedia.org/wiki/Miter_joint).
 
 {{<figure src="/sspl/miter-joint.svg" width=500vp class="svg">}}
 We create two lines around the edges and find the points where they intersect.
@@ -123,7 +123,7 @@ To know why, we need to get into the OpenGL rendering pipeline.
 After all, when the camera renders the game, it seems to project the 3D world of the game into the screen just fine. 
 So, how does OpenGL render?
 
-The most intuitive way to render a 3D scene would be following physics:
+The most intuitive way to render a 3D scene would be approximating physics:
 casting lots of rays of light from every light source and calculating what objects they hit, how they bounce, what color they'd be, and which hit the camera.
 This would be wasteful, as most rays would go flying off into the sky.
 
@@ -193,9 +193,9 @@ $$
 $$
 
 Critically, the matrix doesn't depend on the vector, only on the angle.
-That means that if we had any 2D point, to rotate it around the origin you just multiply it by that matrix.
+That means that if we had any 2D point, to rotate it around the origin you just multiply the matrix by it.
 That's how OpenGL projects the vertices:
-the shader multiplies the appropriate tranformation matrices to each vertex's position.
+the shader applies (multiplies) the appropriate transformation matrices to each vertex's position.
 All done in parallel in the graphics card!
 
 One final caveat: OpenGL uses 4D vertices to represent position, where the final value ($w$) is always $1$.
@@ -278,9 +278,10 @@ When transforming to screen-space, OpenGL takes over.
 To apply perspective, it divides $x_{clip}$ and $y_{clip}$ by the depth: $w_{clip}=z_{view}$.
 That creates a [vanishing point](https://en.wikipedia.org/wiki/Vanishing_point) right at the center of the camera.
 After this, clip space is translated so that the lower left corner of the cube is at the origin, and scaled to the appropriate resolution.
-Then, finally, the triangle rasterization algorithm can take over and render the scene.
+That makes the vertex's $x$ and $y$ perfectly correspond to the appropiate pixel's location.
+Finally, the triangle rasterization algorithm can take over and render the scene.
 
-So, we can finally take a look at what a shader does by default:
+I recommend you [look at the diagram again](http://localhost:1313/posts/screen-space-projected-lines/#the-rendering-pipeline) and take it in. After that, we can finally take a look at what a shader does by default:
 
 {{<highlight glsl "lineNos=inline">}}
 
@@ -297,9 +298,9 @@ So, we'll make our shader take things to the screen plane, calculate $\vec{u}+\v
 
 void vertex() {
 	vec4 vect = PROJECTION_MATRIX * MODELVIEW_MATRIX * vec4(VERTEX, 1);
-  // Note that MODELVIEW_MATRIX is just MODEL_MATRIX * VIEW_MATRIX
+	// Note that MODELVIEW_MATRIX is just MODEL_MATRIX * VIEW_MATRIX
 
-	// ... transform to screen space
+	// ... transform from clip space to screen space
 
 	vec4 offset = u + v;
 
@@ -314,15 +315,18 @@ void vertex() {
 
 ### The import script
 
+{{<figure src="/sspl/line-to-faces-real.svg" width=200vp class="svg">}}
+
 First, we actually need to change the mesh, turning each line into two faces.
+Except we turn it into four faces, because $D$ and $E$ swap over when the angle crosses 180º and that leaves a B shape.
+
 How you do that will depend a lot on the engine you're using.
 In others, maybe you could do this in a Blender export script.
-
 However, you need to make sure you can pass the next and previous vertex's positions as arguments to the shader.
 In Godot, the only way to pass in extra arguments is through using the
 [custom vec4s](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/spatial_shader.html#vertex-built-ins).
 And I didn't find a way to set up custom0 and custom1 from outside.
-So, we're using an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
+So, I made an [import script](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_scenes.html#doc-importing-3d-scenes-import-script)
 that modifies the mesh, populates the customs, and saves the modified mesh for later use!
 The structure should look something like this:
 
@@ -405,8 +409,8 @@ You can see the actual source code [here](https://github.com/miniluz/ScreenSpace
 
 ### The shader
 
-The miter joints need to be done in screen space.
-So, the shader applies perspective and scales with the resolution before calculating $D$ and $E$,
+As said, the miter joints need to be done in screen space.
+So, the shader applies perspective and scales with the resolution before calculating the offset for $D$ and $E$,
 then undoes it after.
 
 {{<highlight glsl "lineNos=inline">}}
@@ -450,6 +454,7 @@ void vertex() {
 		
 		float isinb = inversesqrt(1. - cosb * cosb);
 		
+		// CUSTOM0.w is +1 or -1 to reach either D or E
 		vec2 u = AB * CUSTOM0.w * isinb;
 		vec2 v = CB * CUSTOM0.w * isinb;
 		
@@ -464,10 +469,14 @@ void vertex() {
 {{</highlight >}}
 [no-limit.gdshader](https://github.com/miniluz/ScreenSpaceProjectedLines/blob/main/source/shaders/no-limit.gdshader)
 
+And now, with the miter joint, things should just look amazing!
+
 {{<figure src="/sspl/gif-no-limit.gif">}}
 
 Woah! That... What? Why does it do that?
-Well, you can see if you play around in [GeoGebra](https://www.geogebra.org/calculator/rhsczxkf) that when the angle gets sharp the joint gets really long...
+
+... Well.
+You can see if you play around in [GeoGebra](https://www.geogebra.org/calculator/rhsczxkf) that when the angle gets sharp the joint gets really long...
 In fact, as the angle becomes 0º the length goes up to infinity.
 So, an easy solution might be to add a limit to the distance the joint can have from its original point.
 
@@ -484,9 +493,13 @@ if (excess > 0.) {
 
 {{<figure src="/sspl/gif-low-limit.gif">}}
 
-...Huh. Now the lines get thinner...
-Of course, that makes sense. The length of the joint needs to go up to infinity to preserve the width.
-So, if we cap its length, we have no choice but to lose some width...
+...Huh. Ok, now it doesn't go to infinity anymore.
+But now the lines get thinner...
+
+{{<figure src="/sspl/miter-joint-limited.svg" width=400vp class="svg">}}
+
+Of course, that makes sense. The length of the joint needed to go up to infinity to preserve the width.
+So, if we cap it, it loses width...
 
 Except. I have an idea!
 There are actually two other points where the lines cross when making miter joints!
@@ -525,7 +538,7 @@ So, we add another vertex and another face!
 
 {{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
-$L$ normally stays still. But when the lenght starts growing up to infinity, we do a switcheroo to $F$ and $G$ and put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:
+$L$ normally stays still. But when the lenght starts growing up to infinity, we first do a switcheroo to $F$ and $G$, and then put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:
 
 {{<highlight gd "lineNos=inline">}}
 
