@@ -4,7 +4,7 @@ date: 2023-04-29T02:53:00+00:00
 author: miniluz
 # aliases: ["first"]
 showToc: true
-draft: false
+draft: true 
 math: true
 svg: true
 ---
