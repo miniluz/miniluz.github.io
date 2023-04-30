@@ -542,7 +542,7 @@ So, we add another vertex and another face!
 
 {{<figure src="/sspl/luz-joint.svg" width=300vp class="svg">}}
 
-$L$ normally stays still. But when the lenght starts growing up to infinity, we first do a switcheroo to $F$ and $G$, and then put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:
+$L$ normally stays still. But when the length starts growing up to infinity, we first do a switcheroo to $F$ and $G$, and then put $L$ where the tip would be, limiting its distance. Here are the import script and shader for this:
 
 {{<highlight gd "lineNos=inline">}}
 
@@ -675,4 +675,4 @@ learning about the basics,
 and finding more knowledgeable people,
 I ended up getting it done!
 
-It was hard, but that's why I get to write a nice article about it.
+It was hard, but that's why I get to write an article about it.
