@@ -292,4 +292,154 @@ test-frontend-1  |   ➜  Network: http://172.26.0.2:5173/
 
 If you go to the link, which should be
 <http://localhost:5173>,
-you should be greeted with the example website?
+you should be greeted with the example website!
+
+## Back-end and database
+
+We'll set up an environment to compile and run Rust
+using `cargo chef` to cache package compilation.
+TODO: add link
+
+We'll create a new project using `cargo new backend` and create a Dockerfile in it.
+
+We'll add to the `docker-compose.yaml`:
+
+```yaml
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    # No volumes are needed because we are not hot-reloading Rust.
+```
+
+And to the `Dockerfile`:
+```Docker
+FROM rust:1.72 AS chef
+# Install cargo-chef
+RUN cargo install cargo-chef
+WORKDIR /app
+
+FROM chef AS planner
+# Prepare needed libraries and save to recipe.json
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+# Build needed libraries
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+# Build code
+COPY . .
+RUN cargo build --release --bin backend
+
+FROM chef as runtime
+# Copy only compiled app
+COPY --from=builder /app/target/release/backend /
+ENTRYPOINT [ "/backend" ]
+```
+
+Then we can finally run with `docker compose up`:
+```bash
+ docker compose up
+[+] Building 4.8s (15/15) FINISHED                                                                                                                                   
+# [...]
+ => => naming to docker.io/library/test-backend                                                                                                                                0.0s
+[+] Running 2/0
+ ✔ Container test-backend-1   Created                                                                                                                                          0.0s 
+ ✔ Container test-frontend-1  Created                                                                                                                                          0.0s 
+Attaching to test-backend-1, test-frontend-1
+test-backend-1   | Hello, world!
+test-frontend-1  | $ vite dev --host
+test-backend-1 exited with code 0
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  |   VITE v4.4.9  ready in 737 ms
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  |   ➜  Local:   http://localhost:5173/
+test-frontend-1  |   ➜  Network: http://172.26.0.2:5173/
+```
+
+{{<newline>}}
+
+We'll also want to set up a database and a way to manage it. 
+In my project I chose to try out SeaORM (TODO: link)
+and to use PostgreSQL.
+
+Well, we'll want the front-end and back-end to be exposed,
+and we'll only want the back-end to be able to connect to the database.
+
+TODO: generate config
+TODO: generate env file
+```env
+POSTGRES_USER=...
+POSTGRES_PASSWORD=...
+POSTGRES_DB=...
+```
+
+To set up Posgres we'll need too add to `docker-compose.yaml`:
+```yaml
+TODO:
+```
+
+And we'll follow the [SeaORM setup instructions](https://www.sea-ql.org/sea-orm-tutorial/ch01-01-project-setup.html).
+We'll `cd backend` and run `cargo add sea-orm --features "sqlx-postgres runtime-tokio-rustls macros"`,
+`cargo add tokyo --feature full`.
+I'll also run `cargo add color-eyre`, but you don't have to.
+TODO: versions
+
+We'll change `src/main.rs` to:
+```rust
+use std::env;
+
+use sea_orm::Database;
+
+use color_eyre::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let db = Database::connect(format!(
+        "postgres://{}:{}@db/{}",
+        env::var("POSTGRES_USER").expect("POSTGRES_USER expected in env"),
+        env::var("POSTGRES_PASSWORD").expect("POSTGRES_PASSWORD expected in env"),
+        env::var("POSTGRES_DB").expect("POSTGRES_DB expected in env"),
+    ))
+    .await?;
+
+    println!("All fine!");
+
+    Ok(())
+}
+```
+
+Use `docker compose up --build` to set it up:
+```bash
+   backend   git:(main)!? docker compose up --build
+[+] Building 80.6s (30/30) FINISHED                                                                                                                                  docker:default
+# [...]
+[+] Running 3/0
+ ✔ Container test-db-1        Created                                                                                                                                          0.0s 
+ ✔ Container test-backend-1   Recreated                                                                                                                                        0.0s 
+ ✔ Container test-frontend-1  Recreated                                                                                                                                        0.0s 
+Attaching to test-backend-1, test-db-1, test-frontend-1
+test-db-1        |
+# test-db-1      | [ ... ]
+test-db-1        | 2023-09-11 09:25:35.576 UTC [1] LOG:  database system is ready to accept connections
+# ^^^^^^^^^^^^^^^^^^^^^^^^
+# Database has been set up
+test-backend-1   | All fine!
+test-backend-1 exited with code 0
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Rust has connected to the DB!
+test-frontend-1  | $ vite dev --host
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  | Forced re-optimization of dependencies
+test-frontend-1  | 
+test-frontend-1  |   VITE v4.4.9  ready in 777 ms
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  |   ➜  Local:   http://localhost:5173/
+test-frontend-1  |   ➜  Network: http://172.26.0.2:5173/
+```
