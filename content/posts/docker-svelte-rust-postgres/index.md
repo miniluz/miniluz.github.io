@@ -220,6 +220,8 @@ services:
     working_dir: /app
     # Bind all important files over
     # Notably, node_modules and .svelte-kit are not bound
+    # This means that when changed in the host, they'll also be changed in the container
+    # And that in turn enables hot-reloading
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/static:/app/static
@@ -235,16 +237,59 @@ services:
 
 And on the `Dockerfile`:
 ```Docker
-FROM oven/bun:1.0
+FROM oven/bun:1.0 as bun
 
 # When building the image the docker-compose volumes aren't set up
 # So we'll set up an app folder
 WORKDIR /app
 
+FROM bun as install
 # Copy the package.json and package-lock.json into it
 COPY package*.json ./
 
 # And install the packages
 RUN [ "bun", "install" ]
+
+FROM bun as svelte_sync
+# Add svelte.config.js and packages
+COPY svelte.config.js svelte.config.js
+COPY --from=install /app/node_modules /app/node_modules
+# Generate .svelte-kit
 RUN [ "bun", "--bun", "run", "svelte-kit", "sync" ]
+
+FROM bun as runner
+# Add the modules and .svelte-kit
+COPY --from=install /app/node_modules /app/node_modules
+COPY --from=svelte_sync /app/.svelte-kit /app/.svelte-kit
+# Add package*.json
+COPY --from=install /app/package*.json /app/
+# The volumes in docker-compose.yaml will provide the other needed files
 ```
+
+Then we should be able to run it with `docker compose up`!
+```bash
+   frontend docker compose up
+[+] Building 0.7s (15/15) FINISHED                                                                                                                                                 docker:default
+ => [frontend internal] load build definition from Dockerfile                                                                                                                                
+
+# [...]
+
+[+] Running 2/0
+ ✔ Network test_default       Created                                                                                                                                                        0.0s 
+ ✔ Container test-frontend-1  Created                                                                                                                                                        0.0s 
+Attaching to test-frontend-1
+test-frontend-1  | $ vite dev --host
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  | Forced re-optimization of dependencies
+test-frontend-1  | 
+test-frontend-1  |   VITE v4.4.9  ready in 745 ms
+test-frontend-1  | 
+test-frontend-1  | 
+test-frontend-1  |   ➜  Local:   http://localhost:5173/
+test-frontend-1  |   ➜  Network: http://172.26.0.2:5173/
+```
+
+If you go to the link, which should be
+<http://localhost:5173>,
+you should be greeted with the example website?
