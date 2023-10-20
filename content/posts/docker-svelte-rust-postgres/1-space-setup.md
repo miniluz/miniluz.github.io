@@ -27,7 +27,7 @@ For example, take the following example Dockerfile
 ```Docker
 # Uses the debian image as a base, pulling it from:
 # https://hub.docker.com/_/debian
-FROM debian
+FROM docker.io/debian
 
 # This command is in "shell form", so it'll run using sh
 # <instruction> <command>
@@ -48,7 +48,7 @@ To test it out, create a directory and paste this inside a file named "Dockerfil
 Then, run `docker build . -t test` (the -t is to tag it with a name):
 TODO: tell people to install Docker
 
-```bash session
+```bash
  docker build . -t test
 
 Sending build context to Docker daemon   2.56kB
@@ -71,14 +71,14 @@ Successfully tagged test:latest
 ```
 
 And then `docker run test`:
-``` bash session
+``` bash
  docker run test
 test1
 test2
 ```
 
 Now let's try running `docker build . -t test` again:
-```bash session
+```bash
  docker build . -t test
 
 Sending build context to Docker daemon   2.56kB
@@ -105,7 +105,7 @@ Now let's change the Dockerfile so that instead of "test2" it echoes "something 
 ```Docker
 # Uses the debian image as a base, pulling it from:
 # https://hub.docker.com/_/debian
-FROM debian
+FROM docker.io/debian
 
 # This command is in "shell form", so it'll run using sh
 # <instruction> <command>
@@ -125,7 +125,7 @@ CMD ["cat", "text.txt"]
 ```
 
 And let's build again:
-```bash session
+```bash
  docker build . -t test
 
 Sending build context to Docker daemon   2.56kB
@@ -153,7 +153,7 @@ Successfully tagged test:latest
 TODO: talk abou caches
 
 And then run again:
-``` bash session
+``` bash
  docker run test
 test1
 something new!
@@ -176,9 +176,10 @@ naming it "frontend" using `bunx create-svelte frontend`.
 We'll also want to `cd` into the directory and run `bun install`
 and `bun --bun run svelte-kit sync`
 to download the libraries and set up the `.svelte-kit` directory
+<!--TODO: Verify intellisense-->
 so that Intellisense works properly.
 
-```bash session
+```bash
  cd frontend
  bun install
 bun install v1.0.0 (822a00c4)
@@ -191,7 +192,7 @@ bun install v1.0.0 (822a00c4)
 ```
 
 We can verify that the project runs with `bun --bun run dev`:
-```bash session
+```bash
  bun --bun run dev
 $ vite dev
 
@@ -237,7 +238,7 @@ services:
 
 And on the `Dockerfile`:
 ```Docker
-FROM oven/bun:1.0 as bun
+FROM docker.io/oven/bun:1.0 as bun
 
 # When building the image the docker-compose volumes aren't set up
 # So we'll set up an app folder
@@ -314,7 +315,7 @@ We'll add to the `docker-compose.yaml`:
 
 And to the `Dockerfile`:
 ```Docker
-FROM rust:1.72 AS chef
+FROM docker.io/rust:1.72 AS chef
 # Install cargo-chef
 RUN cargo install cargo-chef
 WORKDIR /app
