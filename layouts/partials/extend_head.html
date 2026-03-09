@@ -2,3 +2,7 @@
 {{- if .Params.math }}
 {{- partial "helpers/katex.html" . }}
 {{- end }}
+{{- /* SVG */}}
+{{- if .Params.svg }}
+{{- partial "helpers/svg.html" . }}
+{{- end }}

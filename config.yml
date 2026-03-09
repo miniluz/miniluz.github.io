@@ -13,8 +13,8 @@ params:
     # imageHeight: 120
     subtitle: "💡✨ -- Trying my best"
     buttons:
-        - name: Blog
-          url: posts
+      - name: Blog
+        url: posts
 
   ShowReadingTime: true
   # disableSpecial1stPost: true
@@ -30,5 +30,3 @@ params:
       url: https://www.linkedin.com/in/javier-mil%C3%A1-de-la-roca-dos-santos-b207b4162/
     - name: reddit
       url: https://www.reddit.com/user/miniluzz
-
-  ShowReadingTime: true

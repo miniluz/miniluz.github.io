@@ -1,7 +1,7 @@
 ---
 title: "{{ replace .Name "-" " " | title }}"
 date: {{ .Date }}
-author: JavierMelon
+author: miniluz
 # aliases: ["first"]
 showToc: true
 draft: true
