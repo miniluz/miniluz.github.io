@@ -84,7 +84,7 @@ Pero en cierta medida esto es una ventaja para un trabajo con tanta gente: hay
 menos maneras de tomar algo y reducirlo al producto que quieres, "top-down", que
 de generarlo desde cero, "bottom-up".
 
-Si mi TFG fuese proyecto de 18 personas, sería mucho más complicado crearlo
+Si mi TFG fuese un proyecto de 18 personas, sería mucho más complicado crearlo
 haciendo el código "bottom-up". A menos que se defina a mano una organización de
 los archivos y de la lógica, de la filosofía, de la documentación de la API, de
 manera apropiada para el desarrollo embebido. Y aun haciéndolo cada
