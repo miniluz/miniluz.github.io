@@ -20,19 +20,48 @@
         "x86_64-darwin"
       ];
       forAllSystems = lib.genAttrs supportedSystems;
+      fetchPaperMod =
+        pkgs:
+        pkgs.fetchFromGitHub {
+          owner = "adityatelange";
+          repo = "hugo-PaperMod";
+          rev = "10d3dcc0e05cee0aaca58a1305a9d824b2cf9a2a";
+          hash = "sha256-OcMhe2QFPM+3iIRbGSqkUMYNjgx0N1NMCFdG55rruu0=";
+        };
+
     in
     {
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          paper-mod = fetchPaperMod pkgs;
+        in
+        {
+          default =
+            pkgs.runCommandLocal "miniluz-blog"
+              {
+                nativeBuildInputs = with pkgs; [
+                  hugo
+                  just
+                ];
+                src = ./.;
+              }
+              ''
+                cp -r $src/* .
+                mkdir -p themes
+                ln -snf ${paper-mod} themes/PaperMod
+                just build
+                cp -r public $out
+              '';
+        }
+      );
+
       devShells = forAllSystems (
         system:
         let
-          pkgs = import nixpkgs { inherit system; };
-          paper-mod = pkgs.fetchFromGitHub {
-            owner = "adityatelange";
-            repo = "hugo-PaperMod";
-            rev = "a2eb47bb4b805116dcd34c1605d39835121f8dbe";
-            hash = "sha256-JH2pPmY4dd9aPl0FDTSXG7zznoCOezEk3kmIlcS/UwI=";
-          };
-
+          pkgs = nixpkgs.legacyPackages.${system};
+          paper-mod = fetchPaperMod pkgs;
         in
         {
           default = pkgs.mkShellNoCC {

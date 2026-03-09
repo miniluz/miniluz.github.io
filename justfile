@@ -11,7 +11,7 @@ watch:
 
 build:
     @echo "Compiling and watching for changes..."
-    @hugo
+    @hugo -F
 
 format:
     @echo "Formatting"
