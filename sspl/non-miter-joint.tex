@@ -1,0 +1,12 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{tikz, standalone}
+\usetikzlibrary{nicepoints}
+\begin{document}
+\begin{tikzpicture}
+  \draw[thick] (0,0) [point="A"below] -- (0,2) [point="B"above left] -- (2,2) [point="C"right];
+  \draw (-0.5,0) -- (0.5,0) -- (0.5,2) -- (-0.5,2) -- (-0.5,0);
+  \draw[dashed] (-0.5,0) -- (0.5,2);
+  \draw (0,2.5) -- (0,1.5) -- (2,1.5) -- (2,2.5) -- (0,2.5);
+  \draw[dashed] (0,2.5) -- (2,1.5);
+\end{tikzpicture}
+\end{document}

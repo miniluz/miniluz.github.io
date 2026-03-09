@@ -1,0 +1,29 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{tikz, standalone}
+\usetikzlibrary{nicepoints, quotes, angles}
+\begin{document}
+\begin{tikzpicture}[scale=0.5]
+  \draw
+    (5, 0) -- (0, -2.5) -- (-5, 0) -- (0, 2.5) -- cycle;
+  \draw[thick]
+    (0, -2.5) [point="D"below] (0, 2.5) [point="E"above];
+  \draw[thick, dashed]
+    (-4,-2) [point="A"below left] -- (-2.5,-1.25)
+    (2.5, -1.25) -- (4, -2)[point="C"below right];
+  \draw[thick, ->]
+    (0,0) -- node[above] {$\vec{u}$} (-2.5, -1.25) [point] coordinate(u);
+  \draw[thick, ->]
+    coordinate(B) (0,0) [point="B"above] -- node[above] {$\vec{v}$} (2.5, -1.25) [point] coordinate(v) ;
+  \draw
+    pic["$\beta$", draw=black, angle eccentricity=1.9, angle radius = 0.23cm]
+    {angle=u--B--v};
+  \draw[thick, dotted]
+    (0,0) -- (-1, -2) coordinate(t);
+  \draw
+    (-0.9, -1.8) node[right] {t}
+    pic[draw=black, angle radius=0.1cm]
+    {right angle=B--t--u}
+    pic[draw=black, angle radius=0.1cm]
+    {right angle=t--B--v};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Code that isn&#39;t yours | miniluz</title>
+<meta name="keywords" content="">
+<meta name="description" content="A group project at my university has me in a group of 18 people, and quite a few
+of my classmates are using AI for code generation. A lot. The constant review
+and correction of what they generate are endless tasks for those of us who
+supervise the project&rsquo;s code.
+I&rsquo;ve also learnt to use AIs to generate code, and I work with them quite a bit
+now. However, the &ldquo;product owners&rdquo; of the project notice a clear difference
+between the code and the work I do and theirs.">
+<meta name="author" content="miniluz">
+<link rel="canonical" href="https://miniluz.github.io/posts/2-code-that-isnt-yours/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f1a69470ebcc36b40e99c6b0bf3e8d59cab3db448a63037a4f0d04d75f3113e3.css" integrity="sha256-8aaUcOvMNrQOmcawvz6NWcqz20SKYwN6Tw0E118xE&#43;M=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://miniluz.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://miniluz.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://miniluz.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://miniluz.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://miniluz.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://miniluz.github.io/posts/2-code-that-isnt-yours/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+<meta property="og:url" content="https://miniluz.github.io/posts/2-code-that-isnt-yours/">
+  <meta property="og:site_name" content="miniluz">
+  <meta property="og:title" content="Code that isn&#39;t yours">
+  <meta property="og:description" content="A group project at my university has me in a group of 18 people, and quite a few of my classmates are using AI for code generation. A lot. The constant review and correction of what they generate are endless tasks for those of us who supervise the project’s code.
+I’ve also learnt to use AIs to generate code, and I work with them quite a bit now. However, the “product owners” of the project notice a clear difference between the code and the work I do and theirs.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-09T13:33:00+02:00">
+    <meta property="article:modified_time" content="2026-03-09T13:33:00+02:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Code that isn&#39;t yours">
+  <meta name="twitter:description" content="A group project at my university has me in a group of 18 people, and quite a few of my classmates are using AI for code generation. A lot. The constant review and correction of what they generate are endless tasks for those of us who supervise the project’s code.
+I’ve also learnt to use AIs to generate code, and I work with them quite a bit now. However, the “product owners” of the project notice a clear difference between the code and the work I do and theirs.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://miniluz.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Code that isn't yours",
+      "item": "https://miniluz.github.io/posts/2-code-that-isnt-yours/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Code that isn't yours",
+  "name": "Code that isn\u0027t yours",
+  "description": "A group project at my university has me in a group of 18 people, and quite a few of my classmates are using AI for code generation. A lot. The constant review and correction of what they generate are endless tasks for those of us who supervise the project\u0026rsquo;s code.\nI\u0026rsquo;ve also learnt to use AIs to generate code, and I work with them quite a bit now. However, the \u0026ldquo;product owners\u0026rdquo; of the project notice a clear difference between the code and the work I do and theirs.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "A group project at my university has me in a group of 18 people, and quite a few of my classmates are using AI for code generation. A lot. The constant review and correction of what they generate are endless tasks for those of us who supervise the project’s code.\nI’ve also learnt to use AIs to generate code, and I work with them quite a bit now. However, the “product owners” of the project notice a clear difference between the code and the work I do and theirs.\nA big part of it is just that I know more, mostly because I’ve been programming for longer. I understand a bit more about Spring Boot and how web frameworks work than they do, and therefore I know how to better direct the LLM’s plans and identify its mistakes. Many of my classmates are less familiar with Spring Boot, particularly how it works under the hood, so they don’t have as clear a mental model. They see some things as “magic”: If you follow the right rites, things simply work.\nLately I think a big part of a programmer’s job is to carry the cognitive weight of the project, to have a mental model of the entire system. This model is the inevitable result of writing the code yourself, built on every error you run into that you don’t quite understand. A thousand moments that lead you to dig deeper into how things work. Slowly you dispel the magic that frameworks provide, until your mental model includes their internal workings (or at least their contract and invariants). When you generate code with AI, you end up with a much more superficial mental model. I try to avoid this by reviewing the code AI generates line by line. But I’m not sure it’s enough. My mental model of the code is considerably weaker than it would be had I just written it myself.\nObviously I don’t know as much about Spring Boot as other programmers, not by a long shot. There are many parts of Spring Boot that are magic to me (Spring Security, etc.). And I worry about not learning them. Since the AI does something that just works, I don’t have to wrestle with it. And this generates a certain anxiety in me. I know what I choose not to learn, but I don’t know what exactly I’m missing out on learning.\nOne solution would be to go into the code and plan a change with almost line-by-line precision, and to tell the AI to generate it. But if I’m doing that, why not simply write it myself?\nRegardless, what some of my classmates do is definitely not enough. The AI generates the code, they check it with the tests the AI makes, and not even those are reviewed in detail. They submit the code, but they don’t carry the cognitive load of understanding it in depth, of understanding the flow of the data. They submit the code, but they don’t do their job as programmers. They aren’t responsible for it. They don’t carry that cognitive load. The ones who end up responsible are the reviewers, if that.\nIn contrast, there’s a project over which I have a complete mental model, and over which I carry all the cognitive load: my thesis. I’m using Embassy, a very non-magical framework for embedded platforms. All the code, the synchronization between tasks, the control flow, I write myself. I’m able to picture in my mind everything that happens in the system, in full detail.\nThis is a project where I start from things that exist and generate the code that fulfills the purpose. It’s a program built “bottom-up.” Recently, I’ve seen case studies about SQLite and LiChess, and other projects where the developers build what they need by integrating libraries as they’re needed. The case studies conclude that what’s vital to their success is that the developers have the complete mental model in their heads, because they built the code “bottom-up.”\nIn that group project, I use what Spring Boot includes by default: JPA, Liquibase, Spring Security, etc. The project feels very different from my thesis, partly because there are parts of the code I rely on I don’t understand. And it’s not only because it’s code others have written. It’s because I feel the “magic” of Spring Boot. We use its organization, its systems, its dependency injection… It includes everything, and from there we extract what we need, “top-down.”\nBut to a certain extent this is an advantage for a project with a large team: there’s only one “correct” way to do things, according to the framework’s philosophy. There are fewer ways to take something and whittle it to the product you want, “top-down,” than to generate it from scratch, “bottom-up.” If my thesis were a project of 18 people, it would be unmanageable to create it writing code “bottom-up.” Unless I manually decided and documented how to organize the files, the logic, the philosophy, the API documentation. All in a manner appropriate for embedded development. And even doing that, every developer would have to learn it.\nFor this reason I don’t consider the case studies to be right, or not entirely. Many projects are of such size, both of the code and the team, that it’s impossible for any single person to have the entirety of the code in their head. That’s why it’s important to make useful APIs, explicit contracts, explicit assumptions and invariants. And “top-down” frameworks provide a common ground for these. Their APIs, contracts, assumptions, and invariants are shared across applications, teams, and companies.\nBut even working with small and focused teams, Spring Boot feels alien, even compared to other backends with similar structure that I’ve set up from scratch. A large part of this feeling is that I don’t understand Spring Boot as well as I understand the system I built in NestJS. If I did, I suspect I’d like it more. But there’s also something deeper.\nThe thing is, for me, it’s really not about whether it’s “bottom-up” or “top-down.” It’s about control. Both AI and Spring Boot take that feeling away from me. It’s what they have in common: SQLite, LiChess, and my TFG are relatively small projects by small groups. They’re projects where it’s possible for everyone to have a complete mental model. For everyone to have control.\nIn large projects, this is impossible. Maybe it’s not even necessary. But I can’t help feeling that it is. And I don’t know if I’m right, or if my brain simply doesn’t want to give up the comfort that control provides.\nIt’s promised that AI code generation is the future of programming. I’ve learned to use the tools, and they’ve multiplied the speed at which I program. But I can’t help wondering if I’m actually doing my job. Is the job of a programmer really to carry the cognitive load, or is that what I tell myself in order to cling to control, to the feeling that led me to love programming? Am I feeling what I feel because of AI, or because of working in a large project where I can’t control everything?\nMaybe it’s not necessary for everyone to carry the cognitive load. But I believe that control and responsibility will always be in demand, even in large projects. I believe there will always be a need for people who know enough to build a complete mental model. To see systems for what they are, and not for their magic. Or, in any case, at least that’s what I want for myself.\n",
+  "wordCount" : "1268",
+  "inLanguage": "en",
+  "datePublished": "2026-03-09T13:33:00+02:00",
+  "dateModified": "2026-03-09T13:33:00+02:00",
+  "author":{
+    "@type": "Person",
+    "name": "miniluz"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://miniluz.github.io/posts/2-code-that-isnt-yours/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "miniluz",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://miniluz.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://miniluz.github.io/" accesskey="h" title="miniluz (Alt + H)">miniluz</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://miniluz.github.io/">Home</a>&nbsp;»&nbsp;<a href="https://miniluz.github.io/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Code that isn&#39;t yours
+    </h1>
+    <div class="post-meta"><span title='2026-03-09 13:33:00 +0200 +0200'>March 9, 2026</span>&nbsp;·&nbsp;<span>6 min</span>&nbsp;·&nbsp;<span>miniluz</span>
+
+</div>
+  </header> 
+
+  <div class="post-content"><p>A group project at my university has me in a group of 18 people, and quite a few
+of my classmates are using AI for code generation. A lot. The constant review
+and correction of what they generate are endless tasks for those of us who
+supervise the project&rsquo;s code.</p>
+<p>I&rsquo;ve also learnt to use AIs to generate code, and I work with them quite a bit
+now. However, the &ldquo;product owners&rdquo; of the project notice a clear difference
+between the code and the work I do and theirs.</p>
+<p>A big part of it is just that I know more, mostly because I&rsquo;ve been programming
+for longer. I understand a bit more about Spring Boot and how web frameworks
+work than they do, and therefore I know how to better direct the LLM&rsquo;s plans and
+identify its mistakes. Many of my classmates are less familiar with Spring Boot,
+particularly how it works under the hood, so they don&rsquo;t have as clear a mental
+model. They see some things as &ldquo;magic&rdquo;: If you follow the right rites, things
+simply work.</p>
+<p>Lately I think a big part of a programmer&rsquo;s job is to carry the cognitive weight
+of the project, to have a mental model of the entire system. This model is the
+inevitable result of writing the code yourself, built on every error you run
+into that you don&rsquo;t quite understand. A thousand moments that lead you to dig
+deeper into how things work. Slowly you dispel the magic that frameworks
+provide, until your mental model includes their internal workings (or at least
+their contract and invariants). When you generate code with AI, you end up with
+a much more superficial mental model. I try to avoid this by reviewing the code
+AI generates line by line. But I&rsquo;m not sure it&rsquo;s enough. My mental model of the
+code is considerably weaker than it would be had I just written it myself.</p>
+<p>Obviously I don&rsquo;t know as much about Spring Boot as other programmers, not by a
+long shot. There are many parts of Spring Boot that are magic to me (Spring
+Security, etc.). And I worry about not learning them. Since the AI does
+something that just works, I don&rsquo;t have to wrestle with it. And this generates a
+certain anxiety in me. I know what I choose not to learn, but I don&rsquo;t know what
+exactly I&rsquo;m missing out on learning.</p>
+<p>One solution would be to go into the code and plan a change with almost
+line-by-line precision, and to tell the AI to generate it. But if I&rsquo;m doing
+that, why not simply write it myself?</p>
+<p>Regardless, what some of my classmates do is definitely not enough. The AI
+generates the code, they check it with the tests the AI makes, and not even
+those are reviewed in detail. They submit the code, but they don&rsquo;t carry the
+cognitive load of understanding it in depth, of understanding the flow of the
+data. They submit the code, but they don&rsquo;t do their job as programmers. They
+aren&rsquo;t responsible for it. They don&rsquo;t carry that cognitive load. The ones who
+end up responsible are the reviewers, if that.</p>
+<hr>
+<p>In contrast, there&rsquo;s a project over which I have a complete mental model, and
+over which I carry all the cognitive load: my thesis. I&rsquo;m using Embassy, a very
+non-magical framework for embedded platforms. All the code, the synchronization
+between tasks, the control flow, I write myself. I&rsquo;m able to picture in my mind
+everything that happens in the system, in full detail.</p>
+<p>This is a project where I start from things that exist and generate the code
+that fulfills the purpose. It&rsquo;s a program built &ldquo;bottom-up.&rdquo; Recently, I&rsquo;ve seen
+case studies about <a href="https://www.youtube.com/watch?v=ZP7ef4eVnac">SQLite</a> and
+<a href="https://www.youtube.com/watch?v=7VSVfQcaxFY">LiChess</a>, and other projects where
+the developers build what they need by integrating libraries as they&rsquo;re needed.
+The case studies conclude that what&rsquo;s vital to their success is that the
+developers have the complete mental model in their heads, because they built the
+code &ldquo;bottom-up.&rdquo;</p>
+<p>In that group project, I use what Spring Boot includes by default: JPA,
+Liquibase, Spring Security, etc. The project feels very different from my
+thesis, partly because there are parts of the code I rely on I don&rsquo;t understand.
+And it&rsquo;s not only because it&rsquo;s code others have written. It&rsquo;s because I feel the
+&ldquo;magic&rdquo; of Spring Boot. We use its organization, its systems, its dependency
+injection&hellip; It includes everything, and from there we extract what we need,
+&ldquo;top-down.&rdquo;</p>
+<p>But to a certain extent this is an advantage for a project with a large team:
+there&rsquo;s only one &ldquo;correct&rdquo; way to do things, according to the framework&rsquo;s
+philosophy. There are fewer ways to take something and whittle it to the product
+you want, &ldquo;top-down,&rdquo; than to generate it from scratch, &ldquo;bottom-up.&rdquo; If my
+thesis were a project of 18 people, it would be unmanageable to create it
+writing code &ldquo;bottom-up.&rdquo; Unless I manually decided and documented how to
+organize the files, the logic, the philosophy, the API documentation. All in a
+manner appropriate for embedded development. And even doing that, every
+developer would have to learn it.</p>
+<p>For this reason I don&rsquo;t consider the case studies to be right, or not entirely.
+Many projects are of such size, both of the code and the team, that it&rsquo;s
+impossible for any single person to have the entirety of the code in their head.
+That&rsquo;s why it&rsquo;s important to make useful APIs, explicit contracts, explicit
+assumptions and invariants. And &ldquo;top-down&rdquo; frameworks provide a common ground
+for these. Their APIs, contracts, assumptions, and invariants are shared across
+applications, teams, and companies.</p>
+<hr>
+<p>But even working with small and focused teams, Spring Boot feels alien, even
+compared to other backends with similar structure that I&rsquo;ve set up from scratch.
+A large part of this feeling is that I don&rsquo;t understand Spring Boot as well as I
+understand the system I built in NestJS. If I did, I suspect I&rsquo;d like it more.
+But there&rsquo;s also something deeper.</p>
+<p>The thing is, for me, it&rsquo;s really not about whether it&rsquo;s &ldquo;bottom-up&rdquo; or
+&ldquo;top-down.&rdquo; It&rsquo;s about control. Both AI and Spring Boot take that feeling away
+from me. It&rsquo;s what they have in common: SQLite, LiChess, and my TFG are
+relatively small projects by small groups. They&rsquo;re projects where it&rsquo;s possible
+for everyone to have a complete mental model. For everyone to have control.</p>
+<p>In large projects, this is impossible. Maybe it&rsquo;s not even necessary. But I
+can&rsquo;t help feeling that it is. And I don&rsquo;t know if I&rsquo;m right, or if my brain
+simply doesn&rsquo;t want to give up the comfort that control provides.</p>
+<p>It&rsquo;s promised that AI code generation is the future of programming. I&rsquo;ve learned
+to use the tools, and they&rsquo;ve multiplied the speed at which I program. But I
+can&rsquo;t help wondering if I&rsquo;m actually doing my job. Is the job of a programmer
+really to carry the cognitive load, or is that what I tell myself in order to
+cling to control, to the feeling that led me to love programming? Am I feeling
+what I feel because of AI, or because of working in a large project where I
+can&rsquo;t control everything?</p>
+<p>Maybe it&rsquo;s not necessary for everyone to carry the cognitive load. But I believe
+that control and responsibility will always be in demand, even in large
+projects. I believe there will always be a need for people who know enough to
+build a complete mental model. To see systems for what they are, and not for
+their magic. Or, in any case, at least that&rsquo;s what I want for myself.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="next" href="https://miniluz.github.io/posts/2-codigo-que-no-es-tuyo/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Código que no es tuyo</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://miniluz.github.io/">miniluz</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
