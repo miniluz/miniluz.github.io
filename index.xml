@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>miniluz</title>
-    <link>https://miniluz.github.io/</link>
+    <link>https://blog.miniluz.dev/</link>
     <description>Recent content on miniluz</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 09 Mar 2026 13:33:00 +0200</lastBuildDate>
-    <atom:link href="https://miniluz.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://blog.miniluz.dev/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Code that isn&#39;t yours</title>
-      <link>https://miniluz.github.io/posts/2-code-that-isnt-yours/</link>
+      <link>https://blog.miniluz.dev/posts/2-code-that-isnt-yours/</link>
       <pubDate>Mon, 09 Mar 2026 13:33:00 +0200</pubDate>
-      <guid>https://miniluz.github.io/posts/2-code-that-isnt-yours/</guid>
+      <guid>https://blog.miniluz.dev/posts/2-code-that-isnt-yours/</guid>
       <description>&lt;p&gt;A group project at my university has me in a group of 18 people, and quite a few
 of my classmates are using AI for code generation. A lot. The constant review
 and correction of what they generate are endless tasks for those of us who
@@ -23,9 +23,9 @@ between the code and the work I do and theirs.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Código que no es tuyo</title>
-      <link>https://miniluz.github.io/posts/2-codigo-que-no-es-tuyo/</link>
+      <link>https://blog.miniluz.dev/posts/2-codigo-que-no-es-tuyo/</link>
       <pubDate>Mon, 09 Mar 2026 13:32:00 +0200</pubDate>
-      <guid>https://miniluz.github.io/posts/2-codigo-que-no-es-tuyo/</guid>
+      <guid>https://blog.miniluz.dev/posts/2-codigo-que-no-es-tuyo/</guid>
       <description>&lt;p&gt;Uno de los trabajos en grupo de mi universidad es de 18 personas, y bastantes de
 mis compañeros están usando la IA para generación de código, mucho. La revisión
 y corrección constante de lo que generan son tareas interminables para los que
@@ -36,9 +36,9 @@ diferencia clara entre el código y el trabajo que yo realizo y el suyo.&lt;/p&g
     </item>
     <item>
       <title>Drawing Lines in Godot and Beyond!</title>
-      <link>https://miniluz.github.io/posts/screen-space-projected-lines/</link>
+      <link>https://blog.miniluz.dev/posts/screen-space-projected-lines/</link>
       <pubDate>Sat, 29 Apr 2023 03:04:43 +0200</pubDate>
-      <guid>https://miniluz.github.io/posts/screen-space-projected-lines/</guid>
+      <guid>https://blog.miniluz.dev/posts/screen-space-projected-lines/</guid>
       <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;This article&amp;rsquo;s purpose is to explain to beginners how to do vector graphics.
 I&amp;rsquo;ve covered here all I needed to know to truly understand what I was doing. So,
