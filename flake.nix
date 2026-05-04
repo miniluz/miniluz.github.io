@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     __flake-compat = {
-      url = "https://git.lix.systems/lix-project/flake-compat/archive/main.tar.gz";
+      url = "git+https://git.lix.systems/lix-project/flake-compat?ref=refs/heads/main&rev=382052b74656a369c5408822af3f2501e9b1af81";
       flake = false;
     };
   };
